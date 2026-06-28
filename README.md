@@ -1,5 +1,5 @@
 # TinyML Noise-Reduction on the STM32 NUCLEO-F446RE
-This Project demonstrates the implementation and evaluation of real-time noise reduction on a STM32 Nucleo microcontroller, using a quantized Artificial Neural-Network.
+This project demonstrates the implementation and evaluation of real-time noise reduction on a STM32 Nucleo microcontroller, using a quantized Artificial Neural-Network.
 The Network handles three different types of synthetic noise (as well as their combination) from a 5 Hz sine wave:
 1. White noise (Gaussian White Noise)
 2. Echo (Phase-shifted signal superposition)
