@@ -188,7 +188,7 @@ def run_hardware_evaluation():
                     
                     > Initial Noise MSE (clean signal vs. noisy signal): {mse_noise:.4f}
                     > Noise-Reduction MSE (clean signal vs. hardware prediction): {mse_reduct:.4f}
-                    > MSE Improvement: {mse_imp:.2f} -> -{(mse_imp / mse_noise) * 100:.2f}%
+                    > MSE Improvement: {(mse_imp / mse_noise) * 100:.2f}% (-{mse_imp:.4f})
 
                     > Initial Signal-to-Noise Ratio SNR (clean signal vs. noisy signal): {snr_noise:.2f} dB
                     > Noise-Reduction Signal-to-Noise Ratio SNR (clean signal vs. hardware prediction): {snr_reduct:.2f} dB

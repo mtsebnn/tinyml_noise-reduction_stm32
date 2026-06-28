@@ -5,7 +5,63 @@
 Flash-Usage: 7392 Bytes / 512KB (1.41%)
 RAM-Usage: 1992 Bytes / 128KB (1.52%)
 
---- Scenario 0: ONLY_WHITENOISE evaluation error. ---
---- Scenario 1: ONLY_ECHO evaluation error. ---
---- Scenario 2: ONLY_QUANTIZATION evaluation error. ---
---- Scenario 3: COMBINED evaluation error. ---
+--- Scenario 0: ONLY_WHITENOISE (100 test samples) ---
+
+> Average inference time: 110.25 μs (1764 CPU-cycles)
+> Inference rate: 9070 Hz (samples/s)
+> MSE (software-calculated prediction vs. hardware prediction => should be near 0): 0.0000
+
+> Initial Noise MSE (clean signal vs. noisy signal): 0.0676
+> Noise-Reduction MSE (clean signal vs. hardware prediction): 0.0046
+> MSE Improvement: 93.24% (-0.0631)
+
+> Initial Signal-to-Noise Ratio SNR (clean signal vs. noisy signal): 8.69 dB
+> Noise-Reduction Signal-to-Noise Ratio SNR (clean signal vs. hardware prediction): 20.39 dB
+> SNR Improvement: +11.70 dB
+
+
+--- Scenario 1: ONLY_ECHO (100 test samples) ---
+
+> Average inference time: 110.25 μs (1764 CPU-cycles)
+> Inference rate: 9070 Hz (samples/s)
+> MSE (software-calculated prediction vs. hardware prediction => should be near 0): 0.0000
+
+> Initial Noise MSE (clean signal vs. noisy signal): 0.1255
+> Noise-Reduction MSE (clean signal vs. hardware prediction): 0.0014
+> MSE Improvement: 98.87% (-0.1241)
+
+> Initial Signal-to-Noise Ratio SNR (clean signal vs. noisy signal): 6.00 dB
+> Noise-Reduction Signal-to-Noise Ratio SNR (clean signal vs. hardware prediction): 25.46 dB
+> SNR Improvement: +19.46 dB
+
+
+--- Scenario 2: ONLY_QUANTIZATION (100 test samples) ---
+
+> Average inference time: 110.25 μs (1764 CPU-cycles)
+> Inference rate: 9070 Hz (samples/s)
+> MSE (software-calculated prediction vs. hardware prediction => should be near 0): 0.0000
+
+> Initial Noise MSE (clean signal vs. noisy signal): 0.0021
+> Noise-Reduction MSE (clean signal vs. hardware prediction): 0.0003
+> MSE Improvement: 84.08% (-0.0018)
+
+> Initial Signal-to-Noise Ratio SNR (clean signal vs. noisy signal): 23.75 dB
+> Noise-Reduction Signal-to-Noise Ratio SNR (clean signal vs. hardware prediction): 31.73 dB
+> SNR Improvement: +7.98 dB
+
+
+--- Scenario 3: COMBINED (100 test samples) ---
+
+> Average inference time: 110.25 μs (1764 CPU-cycles)
+> Inference rate: 9070 Hz (samples/s)
+> MSE (software-calculated prediction vs. hardware prediction => should be near 0): 0.0000
+
+> Initial Noise MSE (clean signal vs. noisy signal): 0.2446
+> Noise-Reduction MSE (clean signal vs. hardware prediction): 0.0273
+> MSE Improvement: 88.83% (-0.2173)
+
+> Initial Signal-to-Noise Ratio SNR (clean signal vs. noisy signal): 3.10 dB
+> Noise-Reduction Signal-to-Noise Ratio SNR (clean signal vs. hardware prediction): 12.62 dB
+> SNR Improvement: +9.52 dB
+
+
