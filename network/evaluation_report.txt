@@ -1,0 +1,11 @@
+-----------------------------------------------------------
+    Noise-Reduction Network Hardware Evaluation Results
+-----------------------------------------------------------
+
+Flash-Usage: 7392 Bytes / 512KB (1.41%)
+RAM-Usage: 1992 Bytes / 128KB (1.52%)
+
+--- Scenario 0: ONLY_WHITENOISE evaluation error. ---
+--- Scenario 1: ONLY_ECHO evaluation error. ---
+--- Scenario 2: ONLY_QUANTIZATION evaluation error. ---
+--- Scenario 3: COMBINED evaluation error. ---
