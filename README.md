@@ -1,6 +1,6 @@
 # TinyML vs. Conventional Algorithms for Noise-Reduction on the STM32 NUCLEO-F446RE
 This Project demonstrates the implementation and evaluation of a quantized Artificial Neural-Network compared to conventional algorithms for real-time noise reduction on a STM32 Nucleo microcontroller.
-The Network handles three different types of synthetic noise (as well as their combinations) from a 5 Hz sine wave:
+The Network handles three different types of synthetic noise (as well as their combinations) based on a 5 Hz sine wave:
 1. White noise (Gaussian White Noise)
 2. Echo (Phase-shifted signal superposition)
 3. Quantization noise (ADC simulation)
