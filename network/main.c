@@ -1,4 +1,6 @@
 #include "nn_data.h"
+#include "filters.h"
+
 #include <stdint.h>
 #include <stdio.h>
 
@@ -27,12 +29,6 @@
 #define USART2_DR (*((volatile uint32_t*)0x40004404)) // data reg. (buffer reg. to send/receive data bytes serialized over the TX pin)
 #define USART2_BRR (*((volatile uint32_t*)0x40004408)) // baud rate reg. (set baudrate so the PC reads at the same clockspeed as the MC sends)
 #define USART2_CR1 (*((volatile uint32_t*)0x4000440C)) // control reg. 1 (activate USART2-module and its transmitter (TX))
-
-
-// global variables
-int32_t predicted_signal = 0;
-volatile uint32_t total_inference_cycles = 0;
-volatile uint32_t random_value = 0;
 
 
 void init_cyc_cnt(void) {
@@ -82,37 +78,52 @@ int main(void) {
 
     setvbuf(stdout, NULL, _IONBF, 0);
 
-    // array of pointers, pointing to the scenario configurations
-    const nn_scenario_t *scenarios[4] = {
-            &scenario_whitenoise, &scenario_echo, &scenario_quantization, &scenario_combined
-    };
-
     // input window
     int8_t input_window[WINDOW_SIZE];
 
     while (1) {
-        if (uart_read_char() == 'S') {
-            int scenario_i = uart_read_char() - '0';
+        char cmd = uart_read_char();
 
-            if (scenario_i >= 0 && scenario_i < 4) {
-                for (int i = 0; i < WINDOW_SIZE; i++) {
-                    input_window[i] = (int8_t)uart_read_char();
-                }
-
-                uint32_t start_cycles = DWT_CYCCNT;
-                int32_t predicted_signal = predict(input_window, scenarios[scenario_i]);
-                uint32_t total_inference_cycles = DWT_CYCCNT - start_cycles;
-
-                // print out total inference cycles and predicted signals
-                printf("%lu, %ld\n", total_inference_cycles, predicted_signal); // %lu = unsigned long, %ld = long
-            }
+        if (cmd == 'R') {
+            reset_filters();
         }
-        // slow down program
-        // processor only needs a few microseconds for a full run-through
-        // st-link of the STM32 Nucleo cannot transfer the data that fast
-        /*for (volatile int delay = 0; delay < 800000; delay++) {
-            __asm("NOP"); // inline-assembler-command "NOP = No operation"
-        }*/
+        else if (cmd == 'S') {
+
+            for (int i = 0; i < WINDOW_SIZE; i++) {
+                input_window[i] = (int8_t)uart_read_char();
+            }
+
+            // 1. neural network
+            uint32_t start_cycles_nn = DWT_CYCCNT;
+            int32_t predicted_nn = predict_nn(input_window, &data);
+            uint32_t cycles_nn = DWT_CYCCNT - start_cycles_nn;
+
+            int8_t current_sample = input_window[8];
+
+            // 2. Kalman filter
+            uint32_t start_cycles_kal = DWT_CYCCNT;
+            int32_t predicted_kal = predict_kalman(current_sample);
+            uint32_t cycles_kal = DWT_CYCCNT - start_cycles_kal;
+
+            // 3. Wiener filter
+            uint32_t start_cycles_wie = DWT_CYCCNT;
+            int32_t predicted_wie = predict_wiener(input_window);
+            uint32_t cycles_wie = DWT_CYCCNT - start_cycles_wie;
+
+            // 4. IIR filter
+            uint32_t start_cycles_iir = DWT_CYCCNT;
+            int32_t predicted_iir = predict_iir(current_sample);
+            uint32_t cycles_iir = DWT_CYCCNT - start_cycles_iir;
+
+
+            // print out total inference cycles and predicted signals
+            printf("%lu, %ld, %lu, %ld, %lu, %ld, %lu, %ld\n", 
+                cycles_nn, predicted_nn,
+                cycles_kal, predicted_kal,
+                cycles_wie, predicted_wie,
+                cycles_iir, predicted_iir
+            ); // %lu = unsigned long, %ld = long, %.2f = float
+        }
     }
 }
 

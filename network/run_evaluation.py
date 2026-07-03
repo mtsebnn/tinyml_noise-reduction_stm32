@@ -10,23 +10,26 @@ import matplotlib.pyplot as plt
 BASE_DIR = Path(__file__).resolve().parent
 COM_PORT = "COM4"
 BAUD_RATE = 115200
-NUM_TEST_SAMPLES = 100 # One complete sin-wave needs 20 samples (samp per wave = T * samples rate = (1 / freq) * sample rate = (1/5Hz) * 100 Hz = 20)
+NUM_TEST_SAMPLES = 200 # One complete sin-wave needs 20 samples (samp per wave = T * samples rate = (1 / freq) * sample rate = (1/5Hz) * 100 Hz = 20)
 
-scenarios = ["only_whitenoise", "only_echo", "only_quantization", 
-             "combined"]
+scenarios = ["only_whitenoise", "only_echo", "only_quantization", "whitenoise_echo", 
+             "whitenoise_quantization", "echo_quantization", "combined"]
 
 
 def load_test_data(path, scenario):
     try:
-        clean = np.load(path / f"clean_signal.npy") # clean signal for evaluation
-        s_output = np.load(path / f"output_scalingfactor.npy") # scaling factor for dequantization of hardware predictions (for clean vs. hardw. pred.)
-        s_input = np.load(path / f"input_scalingfactor.npy")
+        clean = np.load(path / f"clean_signal_{scenario}.npy") # clean signal for evaluation
+        noisy = np.load(path / f"noisy_signal_{scenario}.npy")
+        s_output = np.load(BASE_DIR / "network_data" / f"output_scalingfactor.npy") # scaling factor for dequantization of hardware predictions (for clean vs. hardw. pred.)
+        s_input = np.load(BASE_DIR / "network_data" / f"input_scalingfactor.npy")
     except Exception:
+        print(f"Could not load all .npy files for {scenario}: {e}")
         clean = None
+        noisy = None
         s_output = 1
         s_input = 1
 
-    tv = path / f"neuronTV_{scenario}.dat"
+    tv = path / f"neuronTV.dat"
     inputs = []
     targets = []
     try:
@@ -44,16 +47,51 @@ def load_test_data(path, scenario):
     except ValueError as e:
         raise ValueError(f"Corrupted data in '{tv.name}': {e}")
 
-    return np.array(inputs, dtype=np.int8), np.array(targets, dtype=np.int32), np.array(clean), s_output, s_input
+    return np.array(inputs, dtype=np.int8), np.array(targets, dtype=np.int32), np.array(clean), np.array(noisy), s_output, s_input
 
 
 def get_memory_usage():
-    usage = subprocess.run(["arm-none-eabi-size", BASE_DIR / "neural_network.elf"], capture_output=True, text=True)
-    lines = usage.stdout.strip().split("\n")
-    if len(lines) > 1:
-        values = lines[1].split()
-        return (int(values[0]) + int(values[1])), (int(values[1]) + int(values[2]))
-    return 0, 0
+    elf_dir = BASE_DIR / "network.elf"
+    if not elf_dir.exists():
+        return {}
+    
+    result = subprocess.run(["arm-none-eabi-nm", "-S", "--size-sort" , elf_dir], capture_output=True, text=True)
+    
+    # memory
+    usage = {
+        "nn": {"flash": 0, "ram": 0},
+        "kalman": {"flash": 0, "ram": 0},
+        "wiener": {"flash": 0, "ram": 0},
+        "iir": {"flash": 0, "ram": 0},
+    }
+
+    # parsing nm-output lines
+    for line in result.stdout.splitlines():
+        parts = line.split()
+        if len(parts) < 4:
+            continue
+
+        # nm -S format: [address] [size] [type] [name]
+        # i.e. 08000118 000000c0 T predict_nn
+        usage_bytes = int(parts[1], 16)
+        sym_type = parts[2].upper()
+        sym_name = parts[3].lower()
+
+        # T/W/V = code, R = read only (flash), D/B = ram (data/bss)
+        if "kalman" in sym_name:
+            if sym_type in ["T", "W", "V", "R"]: usage["kalman"]["flash"] += usage_bytes
+            else: usage["kalman"]["ram"] += usage_bytes
+        elif "wiener" in sym_name:
+            if sym_type in ["T", "W", "V", "R"]: usage["wiener"]["flash"] += usage_bytes
+            else: usage["wiener"]["ram"] += usage_bytes
+        elif "iir" in sym_name:
+            if sym_type in ["T", "W", "V", "R"]: usage["iir"]["flash"] += usage_bytes
+            else: usage["iir"]["ram"] += usage_bytes
+        elif sym_name in ["predict_nn", "data", "w1", "b1", "w2", "b2"]:
+            if sym_type in ["T", "W", "V", "R"]: usage["nn"]["flash"] += usage_bytes
+            else: usage["nn"]["ram"] += usage_bytes
+
+    return usage
 
 
 def evaluate(expected, prediction):
@@ -70,12 +108,13 @@ def evaluate(expected, prediction):
 
     return mse, snr_db
 
-def plot_signals(path, scenario, clean, noisy, filtered):
+def plot_signals(path, samples, scenario, filter_name, clean, noisy, nn, filter):
     plt.figure(figsize=(12, 5))
 
-    plt.plot(clean, label="Clean signal (target)", color="black", alpha=0.7, linewidth=2)
-    plt.plot(noisy, label="Noisy signal (input)", color="red", alpha=0.9, linewidth=2)
-    plt.plot(filtered, label="Filtered signal (hardware)", color="green", alpha=1, linewidth=2)
+    plt.plot(samples, clean[:80], label="Clean signal (target)", color="black", alpha=1, linewidth=2)
+    plt.plot(samples, noisy[:80], label="Noisy signal (input)", color="red", alpha=0.5, linewidth=2)
+    plt.plot(samples, nn[:80], label="Filtered signal (Neural Network)", color="lightgreen", alpha=1, linewidth=1.5)
+    plt.plot(samples, filter[:80], label=f"Filtered signal ({filter_name})", color="lightblue", alpha=1, linewidth=1.5)
 
     plt.grid(True, linestyle="--", alpha=0.5, linewidth=1)
     plt.title(f"Compared signals - scenario: {scenario.upper()}")
@@ -84,66 +123,78 @@ def plot_signals(path, scenario, clean, noisy, filtered):
     plt.legend()
     plt.tight_layout()
 
-    plt.savefig(path / f"plot_signals_{scenario}.png", dpi=150)
+    plt.savefig(path / f"plot_signals_{scenario}_{filter_name}.png", dpi=150)
     plt.close()
 
 def run_hardware_evaluation():
-    flash_usage, ram_usage = get_memory_usage()
     report = dedent (f"""\
     -----------------------------------------------------------
         Noise-Reduction Network Hardware Evaluation Results
-    -----------------------------------------------------------
-                     
-    Flash-Usage: {flash_usage} Bytes / 512KB ({(flash_usage/(512*1024))*100:.2f}%)
-    RAM-Usage: {ram_usage} Bytes / 128KB ({(ram_usage/(128*1024))*100:.2f}%)
-    \n""")
+    -----------------------------------------------------------                
+    """)
 
     try:
         with serial.Serial(COM_PORT, BAUD_RATE, timeout=1) as ser:
             time.sleep(2) # short break for bootloader
 
-            for scenario_i, scenario_name in enumerate(scenarios):
+            for scenario in scenarios:
+                print(f"Processing evaluation for scenario '{scenario}'. Please wait...")
+
                 # load test data
-                data_dir = BASE_DIR / f"data_{scenario_name}"
-                if not data_dir.exists():
-                    print(f"Skip '{scenario_name}': Folder '{data_dir.name}' could not be found.")
+                scenario_dir = BASE_DIR / "scenario_data" / f"scenario_{scenario}"
+                if not scenario_dir.exists():
+                    print(f"Skip '{scenario}': Folder '{scenario_dir.name}' could not be found.")
                     continue
                 try:
-                    all_inputs, all_targets, all_clean_signals, S_output, S_input = load_test_data(data_dir, scenario_name)
+                    all_inputs, all_targets, all_clean_signals, all_noisy_signals, S_output, S_input = load_test_data(scenario_dir, scenario)
                 except FileNotFoundError as e:
-                    print(f"Skip '{scenario_name}': {e}")
+                    print(f"Skip '{scenario}': {e}")
                     continue
                 except ValueError as e:
-                    print(f"Skip '{scenario_name}': Data corruption detected. Details: {e}")
+                    print(f"Skip '{scenario}': Data corruption detected. Details: {e}")
                     continue
 
-                print(f"Process data for scenario '{scenario_name}'. Please wait...")
+                num_tests = min(NUM_TEST_SAMPLES, len(all_inputs)) # avoid error for NUM_TEST_SAMPLES > total_num_samples
 
-                total_num_samples = len(all_inputs)
-                num_tests = min(NUM_TEST_SAMPLES, total_num_samples) # avoid error for NUM_TEST_SAMPLES > total_num_samples
+                hardw_results = {
+                    "nn": {"pred": [], "cycles": []},
+                    "kalman": {"pred": [], "cycles": []},
+                    "wiener": {"pred": [], "cycles": []},
+                    "iir": {"pred": [], "cycles": []},
+                }
 
-                hardw_predictions = []
                 expected_targets = []
                 clean_targets = []
-                cycles_list = []
+
+                ser.write('R'.encode("utf-8")) # reset filters before running scenario
+                time.sleep(0.02)
 
                 # inference and evaluation
                 for i in range(num_tests):
                     input_vector = all_inputs[i]
-                    target_value = all_targets[i]
                     
-                    ser.write(f'S{scenario_i}'.encode("utf-8")) # send command
+                    ser.write('S'.encode("utf-8")) # send command
                     ser.write(input_vector.tobytes()) # send 16 byte input-vector (in binary)
 
                     # process response 
                     response = ser.readline().decode("utf-8").strip()
                     if response:
                         parts = response.split(",")
-                        if len(parts) == 2:
-                            cycles, predictions = parts
-                            cycles_list.append(int(cycles))
-                            hardw_predictions.append(int(predictions))
-                            expected_targets.append(target_value)
+                        if len(parts) == 8:
+                            # extract predictions and cycle counts
+                            hardw_results["nn"]["cycles"].append(int(parts[0]))
+                            hardw_results["nn"]["pred"].append(int(parts[1]))
+                            
+                            hardw_results["kalman"]["cycles"].append(int(parts[2]))
+                            hardw_results["kalman"]["pred"].append(int(parts[3]))
+
+                            hardw_results["wiener"]["cycles"].append(int(parts[4]))
+                            hardw_results["wiener"]["pred"].append(int(parts[5]))
+
+                            hardw_results["iir"]["cycles"].append(int(parts[6]))
+                            hardw_results["iir"]["pred"].append(int(parts[7]))
+                            
+                            expected_targets.append(all_targets[i])
 
                             # only append clean signal if the hardware inference was successfull
                             # -> else clean_targets would get its value even if inference crashes which would lead to a np.array dimension error
@@ -153,50 +204,78 @@ def run_hardware_evaluation():
                     time.sleep(0.05) # short stability break
 
                     
-                if len(hardw_predictions) == num_tests:
-                    avg_cycles = np.mean(cycles_list)
-                    avg_inference_time = (avg_cycles / 16000000) * 1000000 # avg. inference time in μs 
+                if len(hardw_results["nn"]["pred"]) == num_tests:
+                    report += dedent(f"""\n\n--- SCENARIO: {scenario.upper()} ({num_tests} TEST SAMPLES) ---""")
 
-                    # validation hardware prediction vs. expected prediction calculated by python (int vs. int) (should be the same -> MSE = 0)
-                    mse_hardware_validation, snr_hardware_validation = evaluate(expected_targets, hardw_predictions)
-                    
-                    # evaluation hardware predictions vs. clean sin-signal (float vs. float)
-                    if all_clean_signals is not None:
-                        hardw_predictions_float = np.array(hardw_predictions) * S_output # dequantization to int -> float
-                        noisy_signal_float = all_inputs[:num_tests, 8] * S_input
+                    # overall noise
+                    noisy_signal_float = all_inputs[:num_tests, 8] * S_input
+                    mse_noise, snr_noise = evaluate(clean_targets, noisy_signal_float)
+                    report += dedent(f"""
+                    Initial Noise MSE (clean signal vs. noisy signal): {mse_noise:.4f}
+                    Initial Signal-to-Noise Ratio SNR (clean signal vs. noisy signal): {snr_noise:.2f} dB
+                    """)
 
-                        mse_noise, snr_noise = evaluate(clean_targets, noisy_signal_float)
+                    nn_predictions = None
+
+                    memory_usage = get_memory_usage()
+
+                    for algorithm in ["nn", "kalman", "wiener", "iir"]:
+                        avg_cycles = np.mean(hardw_results[algorithm]["cycles"])
+                        avg_inference_time = (avg_cycles / 16000000) * 1000000 # avg. inference time in μs 
+
+                        if algorithm == "nn":
+                            hardw_predictions_float = nn_predictions = np.array(hardw_results[algorithm]["pred"]) * S_output # dequantization to int -> float
+                            # validation hardware prediction vs. expected prediction calculated by python (int vs. int) (should be the same -> MSE = 0)
+                            mse_hardware_validation, snr_hardware_validation = evaluate(expected_targets, hardw_results[algorithm]["pred"])
+
+                            report += dedent(f"MSE (software-calculated prediction vs. hardware prediction => should be near 0): {mse_hardware_validation:.4f}\n")
+
+                        else:
+                            hardw_predictions_float = np.array(hardw_results[algorithm]["pred"]) * S_input
+
+                        # evaluation hardware predictions vs. clean sin-signal (float vs. float)
                         mse_reduct, snr_reduct = evaluate(clean_targets, hardw_predictions_float)
-
-                        # plot scenario
-                        plot_signals(data_dir, scenario_name, clean_targets, noisy_signal_float, hardw_predictions_float)
-
                         mse_imp = mse_noise - mse_reduct
                         snr_imp = snr_reduct - snr_noise
 
-
-                    else :
-                        mse_reduct = float('NaN') # float value: 'nan' (not a number)
-                        snr_reduct = float('NaN')
-
-                    report += dedent(f"""\
-                    --- Scenario {scenario_i}: {scenario_name.upper()} ({num_tests} test samples) ---
-
-                    > Average inference time: {avg_inference_time:.2f} μs ({avg_cycles:.0f} CPU-cycles)
-                    > Inference rate: {1/ (avg_inference_time / 1000000):.0f} Hz (samples/s)
-                    > MSE (software-calculated prediction vs. hardware prediction => should be near 0): {mse_hardware_validation:.4f}
+                        flash_usage = memory_usage.get(algorithm, {}).get("flash", 0)
+                        ram_usage = memory_usage.get(algorithm, {}).get("ram", 0)
                     
-                    > Initial Noise MSE (clean signal vs. noisy signal): {mse_noise:.4f}
-                    > Noise-Reduction MSE (clean signal vs. hardware prediction): {mse_reduct:.4f}
-                    > MSE Improvement: {(mse_imp / mse_noise) * 100:.2f}% (-{mse_imp:.4f})
+                        algo_name = None
+                        match algorithm:
+                            case "nn":
+                                algo_name = "Neural Network"
+                            case "kalman":
+                                algo_name = "Kalman algorithm"
+                            case "wiener":
+                                algo_name = "Wiener algorithm (FIR-filter)"
+                            case "iir":
+                                algo_name = "IIR (low-pass) filter"
 
-                    > Initial Signal-to-Noise Ratio SNR (clean signal vs. noisy signal): {snr_noise:.2f} dB
-                    > Noise-Reduction Signal-to-Noise Ratio SNR (clean signal vs. hardware prediction): {snr_reduct:.2f} dB
-                    > SNR Improvement: {snr_imp:+.2f} dB
-                    \n\n""")
+                        report += dedent(f"""
+                        >>> ALGORITHM: {algo_name}                                         
+        
+                            Average inference time: {avg_inference_time:.2f} μs ({avg_cycles:.0f} CPU-cycles)
+                            Inference rate: {1/ (avg_inference_time / 1000000):.0f} Hz (samples/s)
+
+                            Memory usage (static):
+                                - Flash-Usage: {flash_usage} Bytes / 512KB ({(flash_usage/(512*1024))*100:.2f}%)
+                                - RAM-Usage: {ram_usage} Bytes / 128KB ({(ram_usage/(128*1024))*100:.2f}%)
+
+                            Noise-Reduction MSE (clean signal vs. hardware prediction): {mse_reduct:.4f}
+                            MSE Improvement: {(mse_imp / mse_noise) * 100:.2f}% ({(-1)*mse_imp:.4f})
+
+                            Noise-Reduction Signal-to-Noise Ratio SNR (clean signal vs. hardware prediction): {snr_reduct:.2f} dB
+                            SNR Improvement: {snr_imp:+.2f} dB
+                        \n""")
+
+                        if algorithm != "nn":
+                            # plot scenario
+                            plot_signals(scenario_dir, np.arange(80), scenario, algo_name , clean_targets, noisy_signal_float, nn_predictions, hardw_predictions_float)
+
                 else:
                     report += dedent(f"""\
-                    --- Scenario {scenario_i}: {scenario_name.upper()} evaluation error. ---
+                    --- Scenario: {scenario.upper()} evaluation error. ---
                     """)
 
     except serial.SerialException as e:
@@ -207,8 +286,6 @@ def run_hardware_evaluation():
     print("\n" + report)
     with open(BASE_DIR / "evaluation_report.txt", "w", encoding="utf-8") as f:
         f.write(report)
-
-
 
 if __name__ == "__main__":
     run_hardware_evaluation()

@@ -1,36 +1,15 @@
 #include "nn_data.h"
 
-// scenarios
-const nn_scenario_t scenario_whitenoise = {
-    .name = "only whitenoise", .w1 = w1_only_whitenoise,
-    .b1 = b1_only_whitenoise, .w2 = w2_only_whitenoise,
-    .b2 = B2_ONLY_WHITENOISE, .requant_multiplier = REQUANT_MULT_ONLY_WHITENOISE,
-    .shift_value = SHIFT_VALUE_ONLY_WHITENOISE
-};
-
-const nn_scenario_t scenario_echo = {
-    .name = "only echo", .w1 = w1_only_echo,
-    .b1 = b1_only_echo, .w2 = w2_only_echo,
-    .b2 = B2_ONLY_ECHO, .requant_multiplier = REQUANT_MULT_ONLY_ECHO,
-    .shift_value = SHIFT_VALUE_ONLY_ECHO
-};
-
-const nn_scenario_t scenario_quantization = {
-    .name = "only quantization", .w1 = w1_only_quantization,
-    .b1 = b1_only_quantization, .w2 = w2_only_quantization,
-    .b2 = B2_ONLY_QUANTIZATION, .requant_multiplier = REQUANT_MULT_ONLY_QUANTIZATION,
-    .shift_value = SHIFT_VALUE_ONLY_QUANTIZATION
-};
-
-const nn_scenario_t scenario_combined = {
-    .name = "combined", .w1 = w1_combined,
-    .b1 = b1_combined, .w2 = w2_combined,
-    .b2 = B2_COMBINED, .requant_multiplier = REQUANT_MULT_COMBINED,
-    .shift_value = SHIFT_VALUE_COMBINED
+// data
+const nn_data_t data = {
+    .name = "data", .w1 = w1,
+    .b1 = b1, .w2 = w2,
+    .b2 = B2, .requant_multiplier = REQUANT_MULT,
+    .shift_value = SHIFT_VALUE
 };
 
 // neural network fixed-point arithmetic
-int32_t predict(const int8_t *input_window, const nn_scenario_t *config) {
+int32_t predict_nn(const int8_t *input_window, const nn_data_t *config) {
 
     // layer 1 (16 inputs, 8 outputs)
     int32_t layer1_out[HIDDEN_NEURONS] = {0};

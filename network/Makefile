@@ -19,10 +19,10 @@ CFLAGS = -mcpu=cortex-m4 -mthumb -mfloat-abi=hard -mfpu=fpv4-sp-d16 -O2 -Wall
 LINKFLAGS = -T stm32f446re.ld -nostartfiles --specs=nano.specs --specs=nosys.specs
 
 # source files
-SOURCE = main.c inference.c
+SOURCE = main.c inference.c filters.c
 
 # target file
-TARGET = neural_network
+TARGET = network
 
 
 # standard target (when using the "make" command, Make automatically builds the target "all")

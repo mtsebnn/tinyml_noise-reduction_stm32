@@ -12,6 +12,10 @@ import generate_header
 
 torch.manual_seed(42)
 
+BASE_DIR = Path(__file__).resolve().parent
+WINDOW_SIZE = 16
+SHIFT_VALUE = 20
+
 # generate signal data
 def generate_signals(num_samples = 10000, freq = 5, sample_rate = 100, config = None):
     t = np.linspace(0, num_samples / sample_rate, num_samples)
@@ -44,6 +48,13 @@ def create_windows(sig_clean, sig_noise, window_size):
         y.append(sig_clean[i + window_size // 2]) # target value
     return np.array(x), np.array(y)
 
+# generate input and target data
+def generate_data(config):
+    data_clean, data_noise = generate_signals(config=config)
+    i, t = create_windows(data_clean, data_noise, WINDOW_SIZE)
+    return i, t
+
+
 # dataloader
 class SignalDataset(torch.utils.data.Dataset):
     def __init__(self, x, y):
@@ -59,7 +70,6 @@ class SignalDataset(torch.utils.data.Dataset):
     def __getitem__(self, idx):
         return self.x[idx], self.y[idx]
     
-
 # network
 class NoiseReductionNetwork(nn.Module):
     def __init__(self, window_size):
@@ -73,6 +83,7 @@ class NoiseReductionNetwork(nn.Module):
         x = self.relu(x)
         x = self.l2(x)
         return x
+
 
 # training loop
 def train_model(name, model, dataloader, epochs, learningrate = 0.01):
@@ -92,34 +103,10 @@ def train_model(name, model, dataloader, epochs, learningrate = 0.01):
             optimizer.step() # optimizer updates weights
             loss_total += loss.item()
         if (e % 5 == 0):
-            print(f"Scenario: {name} / Epoch {e} / MSE-Loss: {loss_total/len(dataloader):.5f}")
+            print(f"Epoch {e} / MSE-Loss: {loss_total/len(dataloader):.5f}")
 
 
-
-# --- different noising scenarios ---
-WINDOW_SIZE = 16
-
-scenarios = {
-    "only_whitenoise": {"white_noise": True, "echo": False, "quantization": False},
-    "only_echo": {"white_noise": False, "echo": True, "quantization": False},
-    "only_quantization": {"white_noise": False, "echo": False, "quantization": True},
-    "combined": {"white_noise": True, "echo": True, "quantization": True}
-}
-
-for name, config in scenarios.items():
-    print(f"\n- {name} -")
-    # data
-    data_clean, data_noise = generate_signals(config=config)
-    i, t = create_windows(data_clean, data_noise, WINDOW_SIZE)
-    i_train, i_test, t_train, t_test = train_test_split(i, t, test_size = 0.3, random_state = 42) # spit data into test and training set
-    print(f"Training samples: {len(i_train)}")
-    print(f"Test samples: {len(i_test)}")
-    train = torch.utils.data.DataLoader(SignalDataset(i_train, t_train), batch_size = 32, shuffle = True)
-
-    # initalize and train model
-    model = NoiseReductionNetwork(WINDOW_SIZE)
-    train_model(name, model, train, 11)
-
+def quantize_network(model, i_train):
     # symmetric quantization
     # put model into evaluation mode (disable dropout and ensure Batch-
     # normalization layers use learned running instead of batch-specific statistics)
@@ -143,7 +130,6 @@ for name, config in scenarios.items():
         out_l1_float = model.relu(model.l1(inp_train_tensor)).numpy() # outputs of layer 1 after ReLU
         S_out1 = np.max(np.abs(out_l1_float)) / q_max # scaling factor for outputs of the first layer
         M = S_b1 / S_out1 # scaling factor ratio
-        SHIFT_VALUE = 16
         requant_multiplier = int(np.round(M * (1 << SHIFT_VALUE))) # convert into int using a 16-bit shift (1 << 16 = 2^16)
 
         # second layer
@@ -152,29 +138,33 @@ for name, config in scenarios.items():
         q_w2 = np.clip(np.round(w2/S_w2), -127, 127).astype(np.int8) # limit quantized weights to range -127, 127 and convert to 8-bit-int
         q_b2 = np.round(b2 / S_b2).astype(np.int32)
 
+        print("\nQuantization results: ")
+        print("M = ", M)
+        print("Bit shift =", SHIFT_VALUE)
+        print("requant =", requant_multiplier)
 
-    # save values
-    BASE_DIR = Path(__file__).resolve().parent
-    data_dir = BASE_DIR / f"data_{name}"
-    data_dir.mkdir(exist_ok=True)
-    np.save(f"{data_dir}/clean_signal.npy", t)
-    np.save(f"{data_dir}/input_scalingfactor.npy", S_input)
-    np.save(f"{data_dir}/output_scalingfactor.npy", S_b2)
-    np.save(f"{data_dir}/weight1_quantized.npy", q_w1)
-    np.save(f"{data_dir}/weight2_quantized.npy", q_w2)
-    np.save(f"{data_dir}/bias1_quantized.npy", q_b1)
-    np.save(f"{data_dir}/bias2_quantized.npy", q_b2)
-    np.save(f"{data_dir}/shift_value.npy", SHIFT_VALUE)
-    np.save(f"{data_dir}/requant_multiplier.npy", requant_multiplier)
+        return {"q_w1": q_w1, "q_w2": q_w2, "q_b1": q_b1, "q_b2": q_b2, "S_input": S_input, 
+                "S_b2": S_b2, "requant_multiplier": requant_multiplier}
 
+
+def generate_testvector(i_combined, data, path):
+    path.mkdir(exist_ok=True)
 
     # generate testvector
+    q_w1 = data["q_w1"]
+    q_w2 = data["q_w2"]
+    q_b1 = data["q_b1"]
+    q_b2 = data["q_b2"]
+    S_input = data["S_input"]
+    requant_multiplier = data["requant_multiplier"]
+    
     # use unshuffled inputs for correct sine-wave order of samples (for plots in run_evaluation.py)
-    q_i_test = np.clip(np.round(i/S_input), -128, 127).astype(np.int8) # quantize test data
+    q_i_test = np.clip(np.round(i_combined/S_input), -128, 127).astype(np.int8) # quantize test data
+    
+
     # calculate target values using fixed-point arithmetic (C logic)
     target_values = []
     for sample in q_i_test:
-
         # layer 1 (16 inputs, 8 outputs)
         layer1_out = np.zeros(8, dtype=np.int32)
         for neuron in range(8):
@@ -196,17 +186,116 @@ for name, config in scenarios.items():
         target_values.append(int(layer2_out))
     target_values = np.array(target_values, dtype=np.int32)
 
-    with open(f"{data_dir}/neuronTV_{name}.dat", "w") as f:
+    with open(f"{path}/neuronTV.dat", "w") as f:
         for idx in range(min(len(q_i_test), 200)): # first 200 test samples
             inp = q_i_test[idx].tolist()
             inp.append(target_values[idx]) # add scaled target/clean value to validate in C code later
             line = " ".join(str(v) for v in inp)
             f.write(line + "\n")
-    
-    print("M = ", M)
-    print("Bit shift =", SHIFT_VALUE)
-    print("requant =", requant_multiplier)
-    print(f"Data succesfully exported to '{data_dir}'.\n")
-print(f"-- Succesfully processed all scenarios. --")
 
-generate_header.generate_header()
+
+def export_scenario_data(name, config, data, dir):
+    dir.mkdir(exist_ok=True)
+    path = dir / f"scenario_{name}"
+    path.mkdir(exist_ok=True)
+    i, t = generate_data(config)
+
+    np.save(f"{path}/clean_signal_{name}.npy", t)
+    np.save(f"{path}/noisy_signal_{name}.npy", i)
+
+    generate_testvector(i, data, path)
+
+    print(f"Successfully exported data of scenario '{name}' to '{path}'.")
+
+
+def export_network_data(inputs, targets, data, path):
+    path.mkdir(exist_ok=True)
+
+    generate_testvector(inputs, data, path)
+
+    np.save(f"{path}/clean_signal.npy", targets)
+    np.save(f"{path}/input_scalingfactor.npy", data["S_input"])
+    np.save(f"{path}/output_scalingfactor.npy", data["S_b2"])
+    np.save(f"{path}/weight1_quantized.npy", data["q_w1"])
+    np.save(f"{path}/weight2_quantized.npy", data["q_w2"])
+    np.save(f"{path}/bias1_quantized.npy", data["q_b1"])
+    np.save(f"{path}/bias2_quantized.npy", data["q_b2"])
+    np.save(f"{path}/shift_value.npy", SHIFT_VALUE)
+    np.save(f"{path}/requant_multiplier.npy", data["requant_multiplier"])
+
+    print(f"\nNetwork data succesfully exported to '{path}'.\n")
+
+def calculate_wiener_coeff(data, i, t):
+    # quantize training data
+    q_i_train = np.clip(np.round(i/data["S_input"]), -128, 127).astype(np.int8)
+    q_t_train = np.round(t/data["S_input"])
+
+    # q_i_train consist of thousands of line with each line being a window of 16 noisy values, 
+    # while q_t_train consist of the target values for each line
+    # -> Find vector of 16 weights (Wiener coeff.) so the multiplication of every line of q_i_train 
+    # and this vector minimizes the squared error over the complete dataset
+    # => Using np.linalg.lstsq calculates the least-squares solution to a linear matrix equation
+    wiener_coeff, _, _, _ = np.linalg.lstsq(q_i_train, q_t_train, rcond=None)
+    # scale Wiener coeff. with 14 bit shift (2^14 = 16384)
+    wiener_fixed = np.round(wiener_coeff.flatten() * 16384).astype(int)
+    path = BASE_DIR / "filter_data"
+    path.mkdir(exist_ok=True)
+    with open(path / "wiener_coefficients.txt", "w") as f:
+        content = ", ".join(f"{v}" for v in wiener_fixed)
+        f.write(content)
+
+    print(f"\nSuccesfully exported Wiener coefficients to '{path}'.")
+
+def main():
+    # --- different noising scenarios ---
+    scenarios = {
+        "only_whitenoise": {"white_noise": True, "echo": False, "quantization": False},
+        "only_echo": {"white_noise": False, "echo": True, "quantization": False},
+        "only_quantization": {"white_noise": False, "echo": False, "quantization": True},
+
+        "whitenoise_echo": {"white_noise": True, "echo": True, "quantization": False},
+        "whitenoise_quantization": {"white_noise": True, "echo": False, "quantization": True},
+        "echo_quantization": {"white_noise": False, "echo": True, "quantization": True},
+
+        "combined": {"white_noise": True, "echo": True, "quantization": True}
+    }
+    all_inputs = []
+    all_targets = []
+
+    # data
+    for name, config in scenarios.items():
+        i, t = generate_data(config)
+        all_inputs.append(i)
+        all_targets.append(t)
+
+    i_combined = np.vstack(all_inputs)
+    t_combined = np.concatenate(all_targets)
+
+    # create dataset
+    i_train, i_test, t_train, t_test = train_test_split(i_combined, t_combined, test_size = 0.3, random_state = 42) # spit data into test and training set
+    print(f"Training samples: {len(i_train)}")
+    print(f"Test samples: {len(i_test)}")
+    train = torch.utils.data.DataLoader(SignalDataset(i_train, t_train), batch_size = 32, shuffle = True)
+
+    # initalize and train model
+    model_name = "universal"
+    model = NoiseReductionNetwork(WINDOW_SIZE)
+    train_model(model_name, model, train, 11)
+
+    # quantization
+    quantized_data = quantize_network(model, i_train)
+
+    # save values
+    export_network_data(i_combined, t_combined, quantized_data, BASE_DIR / "network_data")
+    for name, config in scenarios.items():
+        export_scenario_data(name, config, quantized_data, BASE_DIR / "scenario_data")
+
+    # calculate coefficients for the Wiener filter
+    calculate_wiener_coeff(quantized_data, i_train, t_train)
+
+    print(f"\n-- Succesfully processed all scenarios. --")
+
+
+if __name__ == "__main__":
+    main()
+    generate_header.generate_header()
