@@ -38,5 +38,11 @@ int32_t predict_nn(const int8_t *input_window, const nn_data_t *config) {
     for(int neuron = 0; neuron < HIDDEN_NEURONS; neuron++) {
         layer2_out += (layer1_out[neuron] * (int32_t)config->w2[neuron]);
     }
-    return layer2_out;
+
+    int8_t center_sample = input_window[WINDOW_SIZE / 2];
+    int64_t scaled_noise = (int64_t)center_sample * RESIDUAL_MULT;
+    int32_t shifted_noise = (int32_t)((scaled_noise + (1 << (config->shift_value -1))) >> config->shift_value);
+    int32_t pred_clean = shifted_noise - layer2_out;
+
+    return pred_clean;
 }

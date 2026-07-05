@@ -1,9 +1,9 @@
 #include "filters.h"
 
 // kalman
-#define Q16_SHIFT 16 
-#define Q 655 // (0.01 * 65536) process noise covariance (how much the true signal is expected to change between two measurements (small value -> signal changes slowly))
-#define R 19661 // (0.03 * 65536) measurement noise covariance (expected amount of noise in the sensor measurement)
+#define Q16_SHIFT 16 // 1 << 16 = 65536
+#define Q 3277 // (0.05 * 65536) process noise covariance (how much the true signal is expected to change between two measurements (small value -> signal changes slowly))
+#define R 3277 // (0.05 * 65536) measurement noise covariance (expected amount of noise in the sensor measurement)
 static int32_t x_pred = 0; // current prediction
 static int32_t P = 65536; // (1 shifted by 16 bits) uncertainty of the current prediction (small value -> high trust in prediction) 
 
@@ -17,9 +17,9 @@ const int32_t wiener_weights[16] = {
 static int32_t iir_state = 0; // internal state of the filter
 
 void reset_filters(void) {
-    P = 1.0f;
-    x_pred = 0.0f;
-    iir_state = 0.0f;
+    P = 65536;
+    x_pred = 0;
+    iir_state = 0;
 }
 
 // Kalman algorithm
@@ -55,7 +55,8 @@ __attribute__((noinline)) int32_t predict_wiener(const int8_t *input_window) {
 // IIR (low-pass) filter (EMA (Exponential Moving Average))
 __attribute__((noinline)) int32_t predict_iir(int8_t current_sample) {
     int32_t sample_fixed = (int32_t)current_sample << 8;
-    // IIR/EMA filter formula -> converted to fixed-point -> 0.25 * y = y / 4 = y >> 2 and 0.75 * x = (3 * x) / 4 = (3 * x) >> 2
-    iir_state = (iir_state >> 2) + ((3 * sample_fixed) >> 2); 
+    // IIR/EMA filter formula -> converted to fixed-point -> i.e. 0.625 * y = y * 5 / 8 = (5 * y) >> 3
+    // using 62.5% signal history and 37.5% new measurement
+    iir_state = ((5 * sample_fixed) >> 3) + ((3 * iir_state) >> 3); 
     return iir_state >> 8;
 }

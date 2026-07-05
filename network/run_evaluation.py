@@ -126,12 +126,70 @@ def plot_signals(path, samples, scenario, filter_name, clean, noisy, nn, filter)
     plt.savefig(path / f"plot_signals_{scenario}_{filter_name}.png", dpi=150)
     plt.close()
 
+def plot_efficiency(path, scenario, data):
+    plt.figure(figsize=(12, 5))
+
+    colors = {"nn": "lightgreen", "kalman": "blue", "wiener": "red", "iir": "purple"}
+    labels = {"nn": "Neural Network", "kalman": "Kalman", "wiener": "Wiener", "iir": "IIR"}
+
+    for algorithm, (time_us, imp_pct) in data.items():
+        plt.scatter(time_us, imp_pct, color=colors[algorithm], marker=".", s=120, label=labels[algorithm], zorder=3)
+        plt.text(time_us * 1.1, imp_pct, f" {labels[algorithm]}\n ({time_us:.1f} μs, {imp_pct:.1f}%)", fontsize=9, verticalalignment="center", zorder=4)
+
+    plt.xscale("log")
+    plt.grid(True, linestyle="--", alpha=0.5, linewidth=1, which="both")
+    plt.title(f"Efficiency vs. Quality - scenario: {scenario.upper()}")
+    plt.xlabel("Average inference time in μs (logarithmic scale)")
+    plt.ylabel("MSE Improvement in %")
+
+    all_pct = [val[1] for val in data.values()]
+    plt.ylim(min(all_pct) - 20 if min(all_pct) < 0 else -10, max(all_pct) + 20)
+    plt.axhline(0, color="black", linewidth=0.8, linestyle="-")
+    plt.tight_layout()
+
+    plt.savefig(path / f"plot_efficiency_vs_quality_{scenario}.png", dpi=150)
+    plt.close()
+
+def plot_error(path, data):
+    scenarios = list(data.keys())
+    if not scenarios:
+        return
+    
+    algorithms = ["nn", "kalman", "wiener", "iir"]
+    colors = {"nn": "lightgreen", "kalman": "blue", "wiener": "red", "iir": "purple"}
+    labels = {"nn": "Neural Network", "kalman": "Kalman", "wiener": "Wiener", "iir": "IIR"}
+
+    x = np.arange(len(scenarios))
+    width = 0.2
+
+    fig, p = plt.subplots(figsize=(12, 5))
+
+    for i, algorithm in enumerate(algorithms):
+        offset = x + (i - 1.5) * width
+        percent = [data[s][algorithm] for s in scenarios]
+        p.bar(offset, percent, width, color=colors[algorithm], label=labels[algorithm])
+
+    p.set_ylabel("MSE Improvement in %")
+    p.set_title("Comparison of filter performance (MSE Improvement) for every scenario")
+    p.set_xticks(x)
+    p.set_xticklabels([s.upper() for s in scenarios], rotation=10, ha="right")
+    p.legend()
+    p.grid(True, axis="y", linestyle="--", alpha=0.5, linewidth=1)
+    p.axhline(0, color="black", linewidth=1)
+
+    plt.tight_layout()
+    plt.savefig(path / f"overall_mse_improvement.png", dpi=150)
+    plt.close()
+
+
 def run_hardware_evaluation():
     report = dedent (f"""\
     -----------------------------------------------------------
         Noise-Reduction Network Hardware Evaluation Results
     -----------------------------------------------------------                
     """)
+
+    error_data = {}
 
     try:
         with serial.Serial(COM_PORT, BAUD_RATE, timeout=1) as ser:
@@ -216,6 +274,8 @@ def run_hardware_evaluation():
                     """)
 
                     nn_predictions = None
+                    efficiency_data = {}
+                    error_data[scenario] = {}
 
                     memory_usage = get_memory_usage()
 
@@ -238,6 +298,12 @@ def run_hardware_evaluation():
                         mse_imp = mse_noise - mse_reduct
                         snr_imp = snr_reduct - snr_noise
 
+                        # plot data
+                        mse_imp_percent = (mse_imp / mse_noise) * 100
+                        efficiency_data[algorithm] = (avg_inference_time, mse_imp_percent)
+                        error_data[scenario][algorithm] = mse_imp_percent
+
+                        # get memory usage for each algorithm
                         flash_usage = memory_usage.get(algorithm, {}).get("flash", 0)
                         ram_usage = memory_usage.get(algorithm, {}).get("ram", 0)
                     
@@ -270,17 +336,20 @@ def run_hardware_evaluation():
                         \n""")
 
                         if algorithm != "nn":
-                            # plot scenario
+                            # plot scenario specific algorithm signals
                             plot_signals(scenario_dir, np.arange(80), scenario, algo_name , clean_targets, noisy_signal_float, nn_predictions, hardw_predictions_float)
+
+                    plot_efficiency(scenario_dir, scenario, efficiency_data)
 
                 else:
                     report += dedent(f"""\
                     --- Scenario: {scenario.upper()} evaluation error. ---
                     """)
-
     except serial.SerialException as e:
         print(f"Error at COM-Port: {e}")
         return
+    
+    plot_error(BASE_DIR, error_data)
     
     # console and file ouput
     print("\n" + report)

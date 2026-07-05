@@ -40,11 +40,12 @@ def generate_header():
         // i.e. we are going to use: data.w1 = w1 = &w1[0] 
         // (means that w1 is a pointer(stores the address) to the first row of the matrix w1_only_whitenoise)
         // w1[2][1] = *(*(w1 + 2) + 1) -> value at row 3, column 2
-        const int8_t (*w1)[WINDOW_SIZE]; 
+        const int16_t (*w1)[WINDOW_SIZE]; 
         const int32_t *b1;
-        const int8_t *w2; // w2 is a pointer to a single int8_t element (ptr[0] = *(ptr + 0) = ptr*)
+        const int16_t *w2; // w2 is a pointer to a single int8_t element (ptr[0] = *(ptr + 0) = ptr*)
         const int32_t b2;
         const int32_t requant_multiplier;
+        const int32_t residual_multiplier;
         const uint8_t shift_value;
     } nn_data_t;
     """)
@@ -61,6 +62,7 @@ def generate_header():
         b2 = np.load(f"{data_dir}/bias2_quantized.npy")
 
         requant_multiplier = int(np.load(f"{data_dir}/requant_multiplier.npy"))
+        residual_multiplier = int(np.load(f"{data_dir}/residual_multiplier.npy"))
         shift_value = int(np.load(f"{data_dir}/shift_value.npy"))
 
     except FileNotFoundError as e:
@@ -68,11 +70,12 @@ def generate_header():
 
 
     header += f"\n// data\n"
-    header += f"static const int8_t w1" + "[HIDDEN_NEURONS][WINDOW_SIZE] = {\n" + c_array_2d(w1) + "\n};\n"
+    header += f"static const int16_t w1" + "[HIDDEN_NEURONS][WINDOW_SIZE] = {\n" + c_array_2d(w1) + "\n};\n"
     header += f"static const int32_t b1" + "[HIDDEN_NEURONS] = {" + f"{c_array_1d(b1)}" + "};\n"
-    header += f"static const int8_t w2" + "[HIDDEN_NEURONS] = {" + f"{c_array_1d(w2[0])}" + "};\n"
+    header += f"static const int16_t w2" + "[HIDDEN_NEURONS] = {" + f"{c_array_1d(w2[0])}" + "};\n"
     header += f"#define B2 {int(b2[0])}\n"
     header += f"#define REQUANT_MULT {requant_multiplier}\n"
+    header += f"#define RESIDUAL_MULT {residual_multiplier}\n"
     header += f"#define SHIFT_VALUE {shift_value}\n\n"
 
     header += dedent("""

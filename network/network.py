@@ -35,7 +35,7 @@ def generate_signals(num_samples = 10000, freq = 5, sample_rate = 100, config = 
 
     # quantization noise (analog-to-digital conversion)
     if(config.get("quantization", False)):
-        quantization_steps = 8
+        quantization_steps = 6
         signal_noise = np.round(signal_noise * quantization_steps) / quantization_steps
 
     return signal_clean, signal_noise
@@ -61,10 +61,15 @@ class SignalDataset(torch.utils.data.Dataset):
         # .tensor(): If input is a np-array the data is copied to a new tesnsor-object (inefficient in terms of memory usage and time)
         # => Use .as_tensor() to avoid copying data (if input already is a np-array, the tensor and the np-array share memory)
         self.x = torch.as_tensor(x, dtype=torch.float32) 
+
+        # residual architecture (noise = noisy - clean)
+        noise_center = x[:, WINDOW_SIZE // 2] # center sample of the window
+        residual = noise_center - y
+
         # unsqueeze(): Inserts a new dimension to the target tensor to match shape of the output [..., 1]
         # (if dataloader builds a batch of size e.g. 32 the target tensor is [32], but the output layer nn.Linear(8,1) always gives a matrix [32, 1].
         # unsqueeze(1) adds a dimension to the target tensor [32, 1] so it matches the shape of the output => MSE can be calculated without causing any problems)
-        self.y = torch.as_tensor(y, dtype=torch.float32).unsqueeze(1) 
+        self.y = torch.as_tensor(residual, dtype=torch.float32).unsqueeze(1) 
     def __len__(self):
         return self.x.size(dim=0)
     def __getitem__(self, idx):
@@ -114,15 +119,18 @@ def quantize_network(model, i_train):
     with torch.no_grad(): # turn off gradient calculation
         w1, b1 = model.l1.weight.numpy(), model.l1.bias.numpy()
         w2, b2 = model.l2.weight.numpy(), model.l2.bias.numpy()
+
         q_max = 127
+        q_max_weights = 32767 # (16 bit)
+
         S_input = np.max(np.abs(i_train)) / q_max
         # y = weight*input+bias which leads to S_y*q_y = (S_w*q_w)(S_in*q_in)+(S_b*q_b)
         # (weight*input) and (bias) need same scaling for the addition to be correct, else adding values with different magnitudes
         # -> (weight*input) is (q_w*q_in) scaled by (S_w*S_in) so it follows that Sb = S_w*S_in
         # first layer
-        S_w1 = np.max(np.abs(w1)) / q_max # determine scaling factor for weights of the first layer
+        S_w1 = np.max(np.abs(w1)) / q_max_weights # determine scaling factor for weights of the first layer
         S_b1 = S_w1 * S_input
-        q_w1 = np.clip(np.round(w1/S_w1), -127, 127).astype(np.int8) # limit quantized weights to range -127, 127 and convert to 8-bit-int
+        q_w1 = np.clip(np.round(w1/S_w1), -32767, 32767).astype(np.int16) # limit quantized weights to range -32767, 32767 and convert to 16-bit-int
         q_b1 = np.round(b1 / S_b1).astype(np.int32)
 
         # requantization of the 32-bit output value from layer 1 to a 8-bit input for layer 2
@@ -133,10 +141,12 @@ def quantize_network(model, i_train):
         requant_multiplier = int(np.round(M * (1 << SHIFT_VALUE))) # convert into int using a 16-bit shift (1 << 16 = 2^16)
 
         # second layer
-        S_w2 = np.max(np.abs(w2)) / q_max # determine scaling factor for weights of the second layer
+        S_w2 = np.max(np.abs(w2)) / q_max_weights # determine scaling factor for weights of the second layer
         S_b2 = S_w2 * S_out1
-        q_w2 = np.clip(np.round(w2/S_w2), -127, 127).astype(np.int8) # limit quantized weights to range -127, 127 and convert to 8-bit-int
+        q_w2 = np.clip(np.round(w2/S_w2), -32767, 32767).astype(np.int16) # limit quantized weights to range -32767, 32767 and convert to 16-bit-int
         q_b2 = np.round(b2 / S_b2).astype(np.int32)
+
+        residual_multiplier = int(np.round((S_input / S_b2) * (1 << SHIFT_VALUE)))
 
         print("\nQuantization results: ")
         print("M = ", M)
@@ -144,7 +154,7 @@ def quantize_network(model, i_train):
         print("requant =", requant_multiplier)
 
         return {"q_w1": q_w1, "q_w2": q_w2, "q_b1": q_b1, "q_b2": q_b2, "S_input": S_input, 
-                "S_b2": S_b2, "requant_multiplier": requant_multiplier}
+                "S_b2": S_b2, "requant_multiplier": requant_multiplier, "residual_multiplier": residual_multiplier}
 
 
 def generate_testvector(i_combined, data, path):
@@ -157,6 +167,7 @@ def generate_testvector(i_combined, data, path):
     q_b2 = data["q_b2"]
     S_input = data["S_input"]
     requant_multiplier = data["requant_multiplier"]
+    residual_multiplier = data["residual_multiplier"]
     
     # use unshuffled inputs for correct sine-wave order of samples (for plots in run_evaluation.py)
     q_i_test = np.clip(np.round(i_combined/S_input), -128, 127).astype(np.int8) # quantize test data
@@ -183,7 +194,13 @@ def generate_testvector(i_combined, data, path):
         for neuron in range(8):
                 layer2_out += (int(layer1_out[neuron]) * int(q_w2[0, neuron])) # w2 has shape (1, 8))
 
-        target_values.append(int(layer2_out))
+
+        center_sample = sample[WINDOW_SIZE // 2]
+        scaled_noise = np.int64(center_sample) * np.int64(residual_multiplier)
+        shifted_noise = np.int32((scaled_noise + (1 << (SHIFT_VALUE -1))) >> SHIFT_VALUE)
+        pred_clean = shifted_noise - np.int32(layer2_out)
+
+        target_values.append(int(pred_clean))
     target_values = np.array(target_values, dtype=np.int32)
 
     with open(f"{path}/neuronTV.dat", "w") as f:
@@ -222,6 +239,7 @@ def export_network_data(inputs, targets, data, path):
     np.save(f"{path}/bias2_quantized.npy", data["q_b2"])
     np.save(f"{path}/shift_value.npy", SHIFT_VALUE)
     np.save(f"{path}/requant_multiplier.npy", data["requant_multiplier"])
+    np.save(f"{path}/residual_multiplier.npy", data["residual_multiplier"])
 
     print(f"\nNetwork data succesfully exported to '{path}'.\n")
 

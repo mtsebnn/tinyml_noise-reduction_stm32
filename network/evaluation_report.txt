@@ -4,40 +4,40 @@
 
 
 --- SCENARIO: ONLY_WHITENOISE (200 TEST SAMPLES) ---
-Initial Noise MSE (clean signal vs. noisy signal): 0.0928
-Initial Signal-to-Noise Ratio SNR (clean signal vs. noisy signal): 7.31 dB
+Initial Noise MSE (clean signal vs. noisy signal): 0.1091
+Initial Signal-to-Noise Ratio SNR (clean signal vs. noisy signal): 6.61 dB
 MSE (software-calculated prediction vs. hardware prediction => should be near 0): 0.0000
 
 >>> ALGORITHM: Neural Network                                         
 
-    Average inference time: 110.50 μs (1768 CPU-cycles)
-    Inference rate: 9050 Hz (samples/s)
+    Average inference time: 111.12 μs (1778 CPU-cycles)
+    Inference rate: 8999 Hz (samples/s)
 
     Memory usage (static):
-        - Flash-Usage: 388 Bytes / 512KB (0.07%)
+        - Flash-Usage: 592 Bytes / 512KB (0.11%)
         - RAM-Usage: 0 Bytes / 128KB (0.00%)
 
-    Noise-Reduction MSE (clean signal vs. hardware prediction): 0.0136
-    MSE Improvement: 85.32% (-0.0792)
+    Noise-Reduction MSE (clean signal vs. hardware prediction): 0.0139
+    MSE Improvement: 87.25% (-0.0952)
 
-    Noise-Reduction Signal-to-Noise Ratio SNR (clean signal vs. hardware prediction): 15.65 dB
-    SNR Improvement: +8.33 dB
+    Noise-Reduction Signal-to-Noise Ratio SNR (clean signal vs. hardware prediction): 15.56 dB
+    SNR Improvement: +8.94 dB
 
 
 >>> ALGORITHM: Kalman algorithm                                         
 
     Average inference time: 10.31 μs (165 CPU-cycles)
-    Inference rate: 96973 Hz (samples/s)
+    Inference rate: 96961 Hz (samples/s)
 
     Memory usage (static):
         - Flash-Usage: 84 Bytes / 512KB (0.02%)
         - RAM-Usage: 0 Bytes / 128KB (0.00%)
 
-    Noise-Reduction MSE (clean signal vs. hardware prediction): 0.3226
-    MSE Improvement: -247.40% (0.2297)
+    Noise-Reduction MSE (clean signal vs. hardware prediction): 0.0619
+    MSE Improvement: 43.28% (-0.0472)
 
-    Noise-Reduction Signal-to-Noise Ratio SNR (clean signal vs. hardware prediction): 1.90 dB
-    SNR Improvement: -5.41 dB
+    Noise-Reduction Signal-to-Noise Ratio SNR (clean signal vs. hardware prediction): 9.08 dB
+    SNR Improvement: +2.46 dB
 
 
 >>> ALGORITHM: Wiener algorithm (FIR-filter)                                         
@@ -49,65 +49,65 @@ MSE (software-calculated prediction vs. hardware prediction => should be near 0)
         - Flash-Usage: 104 Bytes / 512KB (0.02%)
         - RAM-Usage: 0 Bytes / 128KB (0.00%)
 
-    Noise-Reduction MSE (clean signal vs. hardware prediction): 0.0378
-    MSE Improvement: 59.25% (-0.0550)
+    Noise-Reduction MSE (clean signal vs. hardware prediction): 0.0692
+    MSE Improvement: 36.60% (-0.0399)
 
-    Noise-Reduction Signal-to-Noise Ratio SNR (clean signal vs. hardware prediction): 11.21 dB
-    SNR Improvement: +3.90 dB
+    Noise-Reduction Signal-to-Noise Ratio SNR (clean signal vs. hardware prediction): 8.59 dB
+    SNR Improvement: +1.98 dB
 
 
 >>> ALGORITHM: IIR (low-pass) filter                                         
 
-    Average inference time: 1.12 μs (18 CPU-cycles)
-    Inference rate: 888889 Hz (samples/s)
+    Average inference time: 1.19 μs (19 CPU-cycles)
+    Inference rate: 842105 Hz (samples/s)
 
     Memory usage (static):
-        - Flash-Usage: 28 Bytes / 512KB (0.01%)
+        - Flash-Usage: 32 Bytes / 512KB (0.01%)
         - RAM-Usage: 4 Bytes / 128KB (0.00%)
 
-    Noise-Reduction MSE (clean signal vs. hardware prediction): 0.0638
-    MSE Improvement: 31.33% (-0.0291)
+    Noise-Reduction MSE (clean signal vs. hardware prediction): 0.0623
+    MSE Improvement: 42.85% (-0.0467)
 
-    Noise-Reduction Signal-to-Noise Ratio SNR (clean signal vs. hardware prediction): 8.94 dB
-    SNR Improvement: +1.63 dB
+    Noise-Reduction Signal-to-Noise Ratio SNR (clean signal vs. hardware prediction): 9.04 dB
+    SNR Improvement: +2.43 dB
 
 
 
 --- SCENARIO: ONLY_ECHO (200 TEST SAMPLES) ---
-Initial Noise MSE (clean signal vs. noisy signal): 0.1236
-Initial Signal-to-Noise Ratio SNR (clean signal vs. noisy signal): 6.07 dB
+Initial Noise MSE (clean signal vs. noisy signal): 0.1226
+Initial Signal-to-Noise Ratio SNR (clean signal vs. noisy signal): 6.10 dB
 MSE (software-calculated prediction vs. hardware prediction => should be near 0): 0.0000
 
 >>> ALGORITHM: Neural Network                                         
 
-    Average inference time: 110.50 μs (1768 CPU-cycles)
-    Inference rate: 9050 Hz (samples/s)
+    Average inference time: 111.12 μs (1778 CPU-cycles)
+    Inference rate: 8999 Hz (samples/s)
 
     Memory usage (static):
-        - Flash-Usage: 388 Bytes / 512KB (0.07%)
+        - Flash-Usage: 592 Bytes / 512KB (0.11%)
         - RAM-Usage: 0 Bytes / 128KB (0.00%)
 
-    Noise-Reduction MSE (clean signal vs. hardware prediction): 0.0015
-    MSE Improvement: 98.82% (-0.1221)
+    Noise-Reduction MSE (clean signal vs. hardware prediction): 0.0021
+    MSE Improvement: 98.30% (-0.1205)
 
-    Noise-Reduction Signal-to-Noise Ratio SNR (clean signal vs. hardware prediction): 25.36 dB
-    SNR Improvement: +19.28 dB
+    Noise-Reduction Signal-to-Noise Ratio SNR (clean signal vs. hardware prediction): 23.80 dB
+    SNR Improvement: +17.70 dB
 
 
 >>> ALGORITHM: Kalman algorithm                                         
 
     Average inference time: 10.31 μs (165 CPU-cycles)
-    Inference rate: 96973 Hz (samples/s)
+    Inference rate: 96961 Hz (samples/s)
 
     Memory usage (static):
         - Flash-Usage: 84 Bytes / 512KB (0.02%)
         - RAM-Usage: 0 Bytes / 128KB (0.00%)
 
-    Noise-Reduction MSE (clean signal vs. hardware prediction): 0.3714
-    MSE Improvement: -200.63% (0.2479)
+    Noise-Reduction MSE (clean signal vs. hardware prediction): 0.1444
+    MSE Improvement: -17.74% (0.0218)
 
-    Noise-Reduction Signal-to-Noise Ratio SNR (clean signal vs. hardware prediction): 1.29 dB
-    SNR Improvement: -4.78 dB
+    Noise-Reduction Signal-to-Noise Ratio SNR (clean signal vs. hardware prediction): 5.39 dB
+    SNR Improvement: -0.71 dB
 
 
 >>> ALGORITHM: Wiener algorithm (FIR-filter)                                         
@@ -119,65 +119,65 @@ MSE (software-calculated prediction vs. hardware prediction => should be near 0)
         - Flash-Usage: 104 Bytes / 512KB (0.02%)
         - RAM-Usage: 0 Bytes / 128KB (0.00%)
 
-    Noise-Reduction MSE (clean signal vs. hardware prediction): 0.0759
-    MSE Improvement: 38.59% (-0.0477)
+    Noise-Reduction MSE (clean signal vs. hardware prediction): 0.0752
+    MSE Improvement: 38.67% (-0.0474)
 
-    Noise-Reduction Signal-to-Noise Ratio SNR (clean signal vs. hardware prediction): 8.19 dB
+    Noise-Reduction Signal-to-Noise Ratio SNR (clean signal vs. hardware prediction): 8.23 dB
     SNR Improvement: +2.12 dB
 
 
 >>> ALGORITHM: IIR (low-pass) filter                                         
 
-    Average inference time: 1.12 μs (18 CPU-cycles)
-    Inference rate: 888889 Hz (samples/s)
+    Average inference time: 1.19 μs (19 CPU-cycles)
+    Inference rate: 842105 Hz (samples/s)
 
     Memory usage (static):
-        - Flash-Usage: 28 Bytes / 512KB (0.01%)
+        - Flash-Usage: 32 Bytes / 512KB (0.01%)
         - RAM-Usage: 4 Bytes / 128KB (0.00%)
 
-    Noise-Reduction MSE (clean signal vs. hardware prediction): 0.1298
-    MSE Improvement: -5.09% (0.0063)
+    Noise-Reduction MSE (clean signal vs. hardware prediction): 0.1433
+    MSE Improvement: -16.83% (0.0206)
 
-    Noise-Reduction Signal-to-Noise Ratio SNR (clean signal vs. hardware prediction): 5.86 dB
-    SNR Improvement: -0.22 dB
+    Noise-Reduction Signal-to-Noise Ratio SNR (clean signal vs. hardware prediction): 5.43 dB
+    SNR Improvement: -0.68 dB
 
 
 
 --- SCENARIO: ONLY_QUANTIZATION (200 TEST SAMPLES) ---
 Initial Noise MSE (clean signal vs. noisy signal): 0.0018
-Initial Signal-to-Noise Ratio SNR (clean signal vs. noisy signal): 24.54 dB
+Initial Signal-to-Noise Ratio SNR (clean signal vs. noisy signal): 24.55 dB
 MSE (software-calculated prediction vs. hardware prediction => should be near 0): 0.0000
 
 >>> ALGORITHM: Neural Network                                         
 
-    Average inference time: 110.50 μs (1768 CPU-cycles)
-    Inference rate: 9050 Hz (samples/s)
+    Average inference time: 111.12 μs (1778 CPU-cycles)
+    Inference rate: 8999 Hz (samples/s)
 
     Memory usage (static):
-        - Flash-Usage: 388 Bytes / 512KB (0.07%)
+        - Flash-Usage: 592 Bytes / 512KB (0.11%)
         - RAM-Usage: 0 Bytes / 128KB (0.00%)
 
-    Noise-Reduction MSE (clean signal vs. hardware prediction): 0.0057
-    MSE Improvement: -221.66% (0.0039)
+    Noise-Reduction MSE (clean signal vs. hardware prediction): 0.0035
+    MSE Improvement: -98.35% (0.0017)
 
-    Noise-Reduction Signal-to-Noise Ratio SNR (clean signal vs. hardware prediction): 19.47 dB
-    SNR Improvement: -5.07 dB
+    Noise-Reduction Signal-to-Noise Ratio SNR (clean signal vs. hardware prediction): 21.57 dB
+    SNR Improvement: -2.97 dB
 
 
 >>> ALGORITHM: Kalman algorithm                                         
 
     Average inference time: 10.31 μs (165 CPU-cycles)
-    Inference rate: 96973 Hz (samples/s)
+    Inference rate: 96961 Hz (samples/s)
 
     Memory usage (static):
         - Flash-Usage: 84 Bytes / 512KB (0.02%)
         - RAM-Usage: 0 Bytes / 128KB (0.00%)
 
-    Noise-Reduction MSE (clean signal vs. hardware prediction): 0.3049
-    MSE Improvement: -17255.54% (0.3031)
+    Noise-Reduction MSE (clean signal vs. hardware prediction): 0.0169
+    MSE Improvement: -865.54% (0.0152)
 
-    Noise-Reduction Signal-to-Noise Ratio SNR (clean signal vs. hardware prediction): 2.15 dB
-    SNR Improvement: -22.39 dB
+    Noise-Reduction Signal-to-Noise Ratio SNR (clean signal vs. hardware prediction): 14.70 dB
+    SNR Improvement: -9.85 dB
 
 
 >>> ALGORITHM: Wiener algorithm (FIR-filter)                                         
@@ -189,65 +189,65 @@ MSE (software-calculated prediction vs. hardware prediction => should be near 0)
         - Flash-Usage: 104 Bytes / 512KB (0.02%)
         - RAM-Usage: 0 Bytes / 128KB (0.00%)
 
-    Noise-Reduction MSE (clean signal vs. hardware prediction): 0.0246
-    MSE Improvement: -1300.90% (0.0229)
+    Noise-Reduction MSE (clean signal vs. hardware prediction): 0.0348
+    MSE Improvement: -1881.17% (0.0330)
 
-    Noise-Reduction Signal-to-Noise Ratio SNR (clean signal vs. hardware prediction): 13.08 dB
-    SNR Improvement: -11.46 dB
+    Noise-Reduction Signal-to-Noise Ratio SNR (clean signal vs. hardware prediction): 11.58 dB
+    SNR Improvement: -12.97 dB
 
 
 >>> ALGORITHM: IIR (low-pass) filter                                         
 
-    Average inference time: 1.12 μs (18 CPU-cycles)
-    Inference rate: 888889 Hz (samples/s)
+    Average inference time: 1.19 μs (19 CPU-cycles)
+    Inference rate: 842105 Hz (samples/s)
 
     Memory usage (static):
-        - Flash-Usage: 28 Bytes / 512KB (0.01%)
+        - Flash-Usage: 32 Bytes / 512KB (0.01%)
         - RAM-Usage: 4 Bytes / 128KB (0.00%)
 
-    Noise-Reduction MSE (clean signal vs. hardware prediction): 0.0052
-    MSE Improvement: -198.09% (0.0035)
+    Noise-Reduction MSE (clean signal vs. hardware prediction): 0.0160
+    MSE Improvement: -814.18% (0.0143)
 
-    Noise-Reduction Signal-to-Noise Ratio SNR (clean signal vs. hardware prediction): 19.80 dB
-    SNR Improvement: -4.74 dB
+    Noise-Reduction Signal-to-Noise Ratio SNR (clean signal vs. hardware prediction): 14.94 dB
+    SNR Improvement: -9.61 dB
 
 
 
 --- SCENARIO: WHITENOISE_ECHO (200 TEST SAMPLES) ---
-Initial Noise MSE (clean signal vs. noisy signal): 0.2061
-Initial Signal-to-Noise Ratio SNR (clean signal vs. noisy signal): 3.85 dB
+Initial Noise MSE (clean signal vs. noisy signal): 0.2239
+Initial Signal-to-Noise Ratio SNR (clean signal vs. noisy signal): 3.49 dB
 MSE (software-calculated prediction vs. hardware prediction => should be near 0): 0.0000
 
 >>> ALGORITHM: Neural Network                                         
 
-    Average inference time: 110.50 μs (1768 CPU-cycles)
-    Inference rate: 9050 Hz (samples/s)
+    Average inference time: 111.12 μs (1778 CPU-cycles)
+    Inference rate: 8999 Hz (samples/s)
 
     Memory usage (static):
-        - Flash-Usage: 388 Bytes / 512KB (0.07%)
+        - Flash-Usage: 592 Bytes / 512KB (0.11%)
         - RAM-Usage: 0 Bytes / 128KB (0.00%)
 
-    Noise-Reduction MSE (clean signal vs. hardware prediction): 0.0352
-    MSE Improvement: 82.92% (-0.1709)
+    Noise-Reduction MSE (clean signal vs. hardware prediction): 0.0478
+    MSE Improvement: 78.63% (-0.1760)
 
-    Noise-Reduction Signal-to-Noise Ratio SNR (clean signal vs. hardware prediction): 11.53 dB
-    SNR Improvement: +7.68 dB
+    Noise-Reduction Signal-to-Noise Ratio SNR (clean signal vs. hardware prediction): 10.19 dB
+    SNR Improvement: +6.70 dB
 
 
 >>> ALGORITHM: Kalman algorithm                                         
 
     Average inference time: 10.31 μs (165 CPU-cycles)
-    Inference rate: 96973 Hz (samples/s)
+    Inference rate: 96961 Hz (samples/s)
 
     Memory usage (static):
         - Flash-Usage: 84 Bytes / 512KB (0.02%)
         - RAM-Usage: 0 Bytes / 128KB (0.00%)
 
-    Noise-Reduction MSE (clean signal vs. hardware prediction): 0.3786
-    MSE Improvement: -83.71% (0.1725)
+    Noise-Reduction MSE (clean signal vs. hardware prediction): 0.1706
+    MSE Improvement: 23.80% (-0.0533)
 
-    Noise-Reduction Signal-to-Noise Ratio SNR (clean signal vs. hardware prediction): 1.21 dB
-    SNR Improvement: -2.64 dB
+    Noise-Reduction Signal-to-Noise Ratio SNR (clean signal vs. hardware prediction): 4.67 dB
+    SNR Improvement: +1.18 dB
 
 
 >>> ALGORITHM: Wiener algorithm (FIR-filter)                                         
@@ -259,65 +259,65 @@ MSE (software-calculated prediction vs. hardware prediction => should be near 0)
         - Flash-Usage: 104 Bytes / 512KB (0.02%)
         - RAM-Usage: 0 Bytes / 128KB (0.00%)
 
-    Noise-Reduction MSE (clean signal vs. hardware prediction): 0.0955
-    MSE Improvement: 53.66% (-0.1106)
+    Noise-Reduction MSE (clean signal vs. hardware prediction): 0.0886
+    MSE Improvement: 60.43% (-0.1353)
 
-    Noise-Reduction Signal-to-Noise Ratio SNR (clean signal vs. hardware prediction): 7.19 dB
-    SNR Improvement: +3.34 dB
+    Noise-Reduction Signal-to-Noise Ratio SNR (clean signal vs. hardware prediction): 7.52 dB
+    SNR Improvement: +4.03 dB
 
 
 >>> ALGORITHM: IIR (low-pass) filter                                         
 
-    Average inference time: 1.12 μs (18 CPU-cycles)
-    Inference rate: 888889 Hz (samples/s)
+    Average inference time: 1.19 μs (19 CPU-cycles)
+    Inference rate: 842105 Hz (samples/s)
 
     Memory usage (static):
-        - Flash-Usage: 28 Bytes / 512KB (0.01%)
+        - Flash-Usage: 32 Bytes / 512KB (0.01%)
         - RAM-Usage: 4 Bytes / 128KB (0.00%)
 
-    Noise-Reduction MSE (clean signal vs. hardware prediction): 0.1828
-    MSE Improvement: 11.28% (-0.0232)
+    Noise-Reduction MSE (clean signal vs. hardware prediction): 0.1705
+    MSE Improvement: 23.83% (-0.0534)
 
-    Noise-Reduction Signal-to-Noise Ratio SNR (clean signal vs. hardware prediction): 4.37 dB
-    SNR Improvement: +0.52 dB
+    Noise-Reduction Signal-to-Noise Ratio SNR (clean signal vs. hardware prediction): 4.67 dB
+    SNR Improvement: +1.18 dB
 
 
 
 --- SCENARIO: WHITENOISE_QUANTIZATION (200 TEST SAMPLES) ---
-Initial Noise MSE (clean signal vs. noisy signal): 0.0827
-Initial Signal-to-Noise Ratio SNR (clean signal vs. noisy signal): 7.82 dB
+Initial Noise MSE (clean signal vs. noisy signal): 0.0854
+Initial Signal-to-Noise Ratio SNR (clean signal vs. noisy signal): 7.68 dB
 MSE (software-calculated prediction vs. hardware prediction => should be near 0): 0.0000
 
 >>> ALGORITHM: Neural Network                                         
 
-    Average inference time: 110.50 μs (1768 CPU-cycles)
-    Inference rate: 9050 Hz (samples/s)
+    Average inference time: 111.12 μs (1778 CPU-cycles)
+    Inference rate: 8999 Hz (samples/s)
 
     Memory usage (static):
-        - Flash-Usage: 388 Bytes / 512KB (0.07%)
+        - Flash-Usage: 592 Bytes / 512KB (0.11%)
         - RAM-Usage: 0 Bytes / 128KB (0.00%)
 
-    Noise-Reduction MSE (clean signal vs. hardware prediction): 0.0112
-    MSE Improvement: 86.50% (-0.0715)
+    Noise-Reduction MSE (clean signal vs. hardware prediction): 0.0087
+    MSE Improvement: 89.76% (-0.0767)
 
-    Noise-Reduction Signal-to-Noise Ratio SNR (clean signal vs. hardware prediction): 16.51 dB
-    SNR Improvement: +8.70 dB
+    Noise-Reduction Signal-to-Noise Ratio SNR (clean signal vs. hardware prediction): 17.57 dB
+    SNR Improvement: +9.90 dB
 
 
 >>> ALGORITHM: Kalman algorithm                                         
 
     Average inference time: 10.31 μs (165 CPU-cycles)
-    Inference rate: 96973 Hz (samples/s)
+    Inference rate: 96961 Hz (samples/s)
 
     Memory usage (static):
         - Flash-Usage: 84 Bytes / 512KB (0.02%)
         - RAM-Usage: 0 Bytes / 128KB (0.00%)
 
-    Noise-Reduction MSE (clean signal vs. hardware prediction): 0.2934
-    MSE Improvement: -254.84% (0.2107)
+    Noise-Reduction MSE (clean signal vs. hardware prediction): 0.0582
+    MSE Improvement: 31.83% (-0.0272)
 
-    Noise-Reduction Signal-to-Noise Ratio SNR (clean signal vs. hardware prediction): 2.31 dB
-    SNR Improvement: -5.50 dB
+    Noise-Reduction Signal-to-Noise Ratio SNR (clean signal vs. hardware prediction): 9.34 dB
+    SNR Improvement: +1.66 dB
 
 
 >>> ALGORITHM: Wiener algorithm (FIR-filter)                                         
@@ -329,65 +329,65 @@ MSE (software-calculated prediction vs. hardware prediction => should be near 0)
         - Flash-Usage: 104 Bytes / 512KB (0.02%)
         - RAM-Usage: 0 Bytes / 128KB (0.00%)
 
-    Noise-Reduction MSE (clean signal vs. hardware prediction): 0.0384
-    MSE Improvement: 53.59% (-0.0443)
+    Noise-Reduction MSE (clean signal vs. hardware prediction): 0.0605
+    MSE Improvement: 29.14% (-0.0249)
 
-    Noise-Reduction Signal-to-Noise Ratio SNR (clean signal vs. hardware prediction): 11.15 dB
-    SNR Improvement: +3.33 dB
+    Noise-Reduction Signal-to-Noise Ratio SNR (clean signal vs. hardware prediction): 9.17 dB
+    SNR Improvement: +1.50 dB
 
 
 >>> ALGORITHM: IIR (low-pass) filter                                         
 
-    Average inference time: 1.12 μs (18 CPU-cycles)
-    Inference rate: 888889 Hz (samples/s)
+    Average inference time: 1.19 μs (19 CPU-cycles)
+    Inference rate: 842105 Hz (samples/s)
 
     Memory usage (static):
-        - Flash-Usage: 28 Bytes / 512KB (0.01%)
+        - Flash-Usage: 32 Bytes / 512KB (0.01%)
         - RAM-Usage: 4 Bytes / 128KB (0.00%)
 
-    Noise-Reduction MSE (clean signal vs. hardware prediction): 0.0494
-    MSE Improvement: 40.21% (-0.0332)
+    Noise-Reduction MSE (clean signal vs. hardware prediction): 0.0568
+    MSE Improvement: 33.46% (-0.0286)
 
-    Noise-Reduction Signal-to-Noise Ratio SNR (clean signal vs. hardware prediction): 10.05 dB
-    SNR Improvement: +2.23 dB
+    Noise-Reduction Signal-to-Noise Ratio SNR (clean signal vs. hardware prediction): 9.44 dB
+    SNR Improvement: +1.77 dB
 
 
 
 --- SCENARIO: ECHO_QUANTIZATION (200 TEST SAMPLES) ---
-Initial Noise MSE (clean signal vs. noisy signal): 0.1314
-Initial Signal-to-Noise Ratio SNR (clean signal vs. noisy signal): 5.80 dB
+Initial Noise MSE (clean signal vs. noisy signal): 0.1271
+Initial Signal-to-Noise Ratio SNR (clean signal vs. noisy signal): 5.95 dB
 MSE (software-calculated prediction vs. hardware prediction => should be near 0): 0.0000
 
 >>> ALGORITHM: Neural Network                                         
 
-    Average inference time: 110.50 μs (1768 CPU-cycles)
-    Inference rate: 9050 Hz (samples/s)
+    Average inference time: 111.12 μs (1778 CPU-cycles)
+    Inference rate: 8999 Hz (samples/s)
 
     Memory usage (static):
-        - Flash-Usage: 388 Bytes / 512KB (0.07%)
+        - Flash-Usage: 592 Bytes / 512KB (0.11%)
         - RAM-Usage: 0 Bytes / 128KB (0.00%)
 
-    Noise-Reduction MSE (clean signal vs. hardware prediction): 0.0015
-    MSE Improvement: 98.84% (-0.1299)
+    Noise-Reduction MSE (clean signal vs. hardware prediction): 0.0018
+    MSE Improvement: 98.56% (-0.1252)
 
-    Noise-Reduction Signal-to-Noise Ratio SNR (clean signal vs. hardware prediction): 25.16 dB
-    SNR Improvement: +19.35 dB
+    Noise-Reduction Signal-to-Noise Ratio SNR (clean signal vs. hardware prediction): 24.36 dB
+    SNR Improvement: +18.41 dB
 
 
 >>> ALGORITHM: Kalman algorithm                                         
 
     Average inference time: 10.31 μs (165 CPU-cycles)
-    Inference rate: 96973 Hz (samples/s)
+    Inference rate: 96961 Hz (samples/s)
 
     Memory usage (static):
         - Flash-Usage: 84 Bytes / 512KB (0.02%)
         - RAM-Usage: 0 Bytes / 128KB (0.00%)
 
-    Noise-Reduction MSE (clean signal vs. hardware prediction): 0.3741
-    MSE Improvement: -184.71% (0.2427)
+    Noise-Reduction MSE (clean signal vs. hardware prediction): 0.1458
+    MSE Improvement: -14.78% (0.0188)
 
-    Noise-Reduction Signal-to-Noise Ratio SNR (clean signal vs. hardware prediction): 1.26 dB
-    SNR Improvement: -4.54 dB
+    Noise-Reduction Signal-to-Noise Ratio SNR (clean signal vs. hardware prediction): 5.35 dB
+    SNR Improvement: -0.60 dB
 
 
 >>> ALGORITHM: Wiener algorithm (FIR-filter)                                         
@@ -399,65 +399,65 @@ MSE (software-calculated prediction vs. hardware prediction => should be near 0)
         - Flash-Usage: 104 Bytes / 512KB (0.02%)
         - RAM-Usage: 0 Bytes / 128KB (0.00%)
 
-    Noise-Reduction MSE (clean signal vs. hardware prediction): 0.0817
-    MSE Improvement: 37.80% (-0.0497)
+    Noise-Reduction MSE (clean signal vs. hardware prediction): 0.0765
+    MSE Improvement: 39.83% (-0.0506)
 
-    Noise-Reduction Signal-to-Noise Ratio SNR (clean signal vs. hardware prediction): 7.87 dB
-    SNR Improvement: +2.06 dB
+    Noise-Reduction Signal-to-Noise Ratio SNR (clean signal vs. hardware prediction): 8.16 dB
+    SNR Improvement: +2.21 dB
 
 
 >>> ALGORITHM: IIR (low-pass) filter                                         
 
-    Average inference time: 1.12 μs (18 CPU-cycles)
-    Inference rate: 888889 Hz (samples/s)
+    Average inference time: 1.19 μs (19 CPU-cycles)
+    Inference rate: 842105 Hz (samples/s)
 
     Memory usage (static):
-        - Flash-Usage: 28 Bytes / 512KB (0.01%)
+        - Flash-Usage: 32 Bytes / 512KB (0.01%)
         - RAM-Usage: 4 Bytes / 128KB (0.00%)
 
-    Noise-Reduction MSE (clean signal vs. hardware prediction): 0.1403
-    MSE Improvement: -6.75% (0.0089)
+    Noise-Reduction MSE (clean signal vs. hardware prediction): 0.1456
+    MSE Improvement: -14.57% (0.0185)
 
-    Noise-Reduction Signal-to-Noise Ratio SNR (clean signal vs. hardware prediction): 5.52 dB
-    SNR Improvement: -0.28 dB
+    Noise-Reduction Signal-to-Noise Ratio SNR (clean signal vs. hardware prediction): 5.36 dB
+    SNR Improvement: -0.59 dB
 
 
 
 --- SCENARIO: COMBINED (200 TEST SAMPLES) ---
-Initial Noise MSE (clean signal vs. noisy signal): 0.2509
-Initial Signal-to-Noise Ratio SNR (clean signal vs. noisy signal): 2.99 dB
+Initial Noise MSE (clean signal vs. noisy signal): 0.1937
+Initial Signal-to-Noise Ratio SNR (clean signal vs. noisy signal): 4.12 dB
 MSE (software-calculated prediction vs. hardware prediction => should be near 0): 0.0000
 
 >>> ALGORITHM: Neural Network                                         
 
-    Average inference time: 110.50 μs (1768 CPU-cycles)
-    Inference rate: 9050 Hz (samples/s)
+    Average inference time: 111.12 μs (1778 CPU-cycles)
+    Inference rate: 8999 Hz (samples/s)
 
     Memory usage (static):
-        - Flash-Usage: 388 Bytes / 512KB (0.07%)
+        - Flash-Usage: 592 Bytes / 512KB (0.11%)
         - RAM-Usage: 0 Bytes / 128KB (0.00%)
 
-    Noise-Reduction MSE (clean signal vs. hardware prediction): 0.0387
-    MSE Improvement: 84.58% (-0.2122)
+    Noise-Reduction MSE (clean signal vs. hardware prediction): 0.0189
+    MSE Improvement: 90.24% (-0.1748)
 
-    Noise-Reduction Signal-to-Noise Ratio SNR (clean signal vs. hardware prediction): 11.11 dB
-    SNR Improvement: +8.12 dB
+    Noise-Reduction Signal-to-Noise Ratio SNR (clean signal vs. hardware prediction): 14.22 dB
+    SNR Improvement: +10.10 dB
 
 
 >>> ALGORITHM: Kalman algorithm                                         
 
     Average inference time: 10.31 μs (165 CPU-cycles)
-    Inference rate: 96973 Hz (samples/s)
+    Inference rate: 96961 Hz (samples/s)
 
     Memory usage (static):
         - Flash-Usage: 84 Bytes / 512KB (0.02%)
         - RAM-Usage: 0 Bytes / 128KB (0.00%)
 
-    Noise-Reduction MSE (clean signal vs. hardware prediction): 0.3973
-    MSE Improvement: -58.32% (0.1463)
+    Noise-Reduction MSE (clean signal vs. hardware prediction): 0.1760
+    MSE Improvement: 9.13% (-0.0177)
 
-    Noise-Reduction Signal-to-Noise Ratio SNR (clean signal vs. hardware prediction): 1.00 dB
-    SNR Improvement: -2.00 dB
+    Noise-Reduction Signal-to-Noise Ratio SNR (clean signal vs. hardware prediction): 4.53 dB
+    SNR Improvement: +0.42 dB
 
 
 >>> ALGORITHM: Wiener algorithm (FIR-filter)                                         
@@ -469,25 +469,25 @@ MSE (software-calculated prediction vs. hardware prediction => should be near 0)
         - Flash-Usage: 104 Bytes / 512KB (0.02%)
         - RAM-Usage: 0 Bytes / 128KB (0.00%)
 
-    Noise-Reduction MSE (clean signal vs. hardware prediction): 0.1193
-    MSE Improvement: 52.46% (-0.1317)
+    Noise-Reduction MSE (clean signal vs. hardware prediction): 0.0884
+    MSE Improvement: 54.36% (-0.1053)
 
-    Noise-Reduction Signal-to-Noise Ratio SNR (clean signal vs. hardware prediction): 6.22 dB
-    SNR Improvement: +3.23 dB
+    Noise-Reduction Signal-to-Noise Ratio SNR (clean signal vs. hardware prediction): 7.53 dB
+    SNR Improvement: +3.41 dB
 
 
 >>> ALGORITHM: IIR (low-pass) filter                                         
 
-    Average inference time: 1.12 μs (18 CPU-cycles)
-    Inference rate: 888889 Hz (samples/s)
+    Average inference time: 1.19 μs (19 CPU-cycles)
+    Inference rate: 842105 Hz (samples/s)
 
     Memory usage (static):
-        - Flash-Usage: 28 Bytes / 512KB (0.01%)
+        - Flash-Usage: 32 Bytes / 512KB (0.01%)
         - RAM-Usage: 4 Bytes / 128KB (0.00%)
 
-    Noise-Reduction MSE (clean signal vs. hardware prediction): 0.2181
-    MSE Improvement: 13.10% (-0.0329)
+    Noise-Reduction MSE (clean signal vs. hardware prediction): 0.1746
+    MSE Improvement: 9.84% (-0.0191)
 
-    Noise-Reduction Signal-to-Noise Ratio SNR (clean signal vs. hardware prediction): 3.60 dB
-    SNR Improvement: +0.61 dB
+    Noise-Reduction Signal-to-Noise Ratio SNR (clean signal vs. hardware prediction): 4.57 dB
+    SNR Improvement: +0.45 dB
 
