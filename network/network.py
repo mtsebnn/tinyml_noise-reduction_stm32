@@ -35,7 +35,7 @@ def generate_signals(num_samples = 10000, freq = 5, sample_rate = 100, config = 
 
     # quantization noise (analog-to-digital conversion)
     if(config.get("quantization", False)):
-        quantization_steps = 6
+        quantization_steps = 2
         signal_noise = np.round(signal_noise * quantization_steps) / quantization_steps
 
     return signal_clean, signal_noise
@@ -120,7 +120,7 @@ def quantize_network(model, i_train):
         w1, b1 = model.l1.weight.numpy(), model.l1.bias.numpy()
         w2, b2 = model.l2.weight.numpy(), model.l2.bias.numpy()
 
-        q_max = 127
+        q_max = 127 # (8 bit)
         q_max_weights = 32767 # (16 bit)
 
         S_input = np.max(np.abs(i_train)) / q_max

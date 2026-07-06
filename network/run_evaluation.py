@@ -126,6 +126,23 @@ def plot_signals(path, samples, scenario, filter_name, clean, noisy, nn, filter)
     plt.savefig(path / f"plot_signals_{scenario}_{filter_name}.png", dpi=150)
     plt.close()
 
+def plot_only_nn(path, samples, scenario, clean, noisy, nn):
+    plt.figure(figsize=(12, 5))
+
+    plt.plot(samples, clean[:80], label="Clean signal (target)", color="black", alpha=1, linewidth=2)
+    plt.plot(samples, noisy[:80], label="Noisy signal (input)", color="red", alpha=0.5, linewidth=2)
+    plt.plot(samples, nn[:80], label="Filtered signal (Neural Network)", color="lightgreen", alpha=1, linewidth=1.5)
+
+    plt.grid(True, linestyle="--", alpha=0.5, linewidth=1)
+    plt.title(f"Compared signals - scenario: {scenario.upper()}")
+    plt.xlabel("sample index")
+    plt.ylabel("y")
+    plt.legend()
+    plt.tight_layout()
+
+    plt.savefig(path / f"plot_signals_{scenario}_only_nn.png", dpi=150)
+    plt.close()
+
 def plot_efficiency(path, scenario, data):
     plt.figure(figsize=(12, 5))
 
@@ -150,7 +167,7 @@ def plot_efficiency(path, scenario, data):
     plt.savefig(path / f"plot_efficiency_vs_quality_{scenario}.png", dpi=150)
     plt.close()
 
-def plot_error(path, data):
+def plot_improvement(path, data, type):
     scenarios = list(data.keys())
     if not scenarios:
         return
@@ -169,8 +186,13 @@ def plot_error(path, data):
         percent = [data[s][algorithm] for s in scenarios]
         p.bar(offset, percent, width, color=colors[algorithm], label=labels[algorithm])
 
-    p.set_ylabel("MSE Improvement in %")
-    p.set_title("Comparison of filter performance (MSE Improvement) for every scenario")
+    if type == "mse":
+        p.set_ylabel("MSE Improvement in %")
+        p.set_title("Comparison of filter performance (MSE Improvement) for every scenario")
+    else:
+        p.set_ylabel("SNR Improvement in %")
+        p.set_title("Comparison of filter performance (SNR Improvement) for every scenario")
+
     p.set_xticks(x)
     p.set_xticklabels([s.upper() for s in scenarios], rotation=10, ha="right")
     p.legend()
@@ -178,7 +200,11 @@ def plot_error(path, data):
     p.axhline(0, color="black", linewidth=1)
 
     plt.tight_layout()
-    plt.savefig(path / f"overall_mse_improvement.png", dpi=150)
+    if type == "mse":
+        plt.savefig(path / f"overall_mse_improvement.png", dpi=150)
+    else:
+        plt.savefig(path / f"overall_snr_improvement.png", dpi=150)
+    
     plt.close()
 
 
@@ -190,6 +216,7 @@ def run_hardware_evaluation():
     """)
 
     error_data = {}
+    snr_data = {}
 
     try:
         with serial.Serial(COM_PORT, BAUD_RATE, timeout=1) as ser:
@@ -276,6 +303,7 @@ def run_hardware_evaluation():
                     nn_predictions = None
                     efficiency_data = {}
                     error_data[scenario] = {}
+                    snr_data[scenario] = {}
 
                     memory_usage = get_memory_usage()
 
@@ -300,8 +328,10 @@ def run_hardware_evaluation():
 
                         # plot data
                         mse_imp_percent = (mse_imp / mse_noise) * 100
+                        snr_imp_percent = (snr_imp / snr_noise) * 100
                         efficiency_data[algorithm] = (avg_inference_time, mse_imp_percent)
                         error_data[scenario][algorithm] = mse_imp_percent
+                        snr_data[scenario][algorithm] = snr_imp_percent
 
                         # get memory usage for each algorithm
                         flash_usage = memory_usage.get(algorithm, {}).get("flash", 0)
@@ -337,7 +367,10 @@ def run_hardware_evaluation():
 
                         if algorithm != "nn":
                             # plot scenario specific algorithm signals
-                            plot_signals(scenario_dir, np.arange(80), scenario, algo_name , clean_targets, noisy_signal_float, nn_predictions, hardw_predictions_float)
+                            plot_signals(scenario_dir, np.arange(80), scenario, algo_name, clean_targets, noisy_signal_float, nn_predictions, hardw_predictions_float)
+
+                    plot_only_nn(scenario_dir, np.arange(80), scenario, clean_targets, noisy_signal_float, nn_predictions)
+                        
 
                     plot_efficiency(scenario_dir, scenario, efficiency_data)
 
@@ -349,7 +382,8 @@ def run_hardware_evaluation():
         print(f"Error at COM-Port: {e}")
         return
     
-    plot_error(BASE_DIR, error_data)
+    plot_improvement(BASE_DIR, error_data, "mse")
+    plot_improvement(BASE_DIR, snr_data, "snr")
     
     # console and file ouput
     print("\n" + report)

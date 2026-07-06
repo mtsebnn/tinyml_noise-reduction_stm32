@@ -57,6 +57,6 @@ __attribute__((noinline)) int32_t predict_iir(int8_t current_sample) {
     int32_t sample_fixed = (int32_t)current_sample << 8;
     // IIR/EMA filter formula -> converted to fixed-point -> i.e. 0.625 * y = y * 5 / 8 = (5 * y) >> 3
     // using 62.5% signal history and 37.5% new measurement
-    iir_state = ((5 * sample_fixed) >> 3) + ((3 * iir_state) >> 3); 
+    iir_state = ((5 * sample_fixed) + (3 * iir_state)) >> 3; 
     return iir_state >> 8;
 }
