@@ -14,7 +14,7 @@ MSE (software-calculated prediction vs. hardware prediction => should be near 0)
     Inference rate: 8994 Hz (samples/s)
 
     Memory usage (static):
-        - Flash-Usage: 596 Bytes / 512KB (0.11%)
+        - Flash-Usage: 596.00 Bytes / 512KB (0.11%)
         - RAM-Usage: 0 Bytes / 128KB (0.00%)
 
     Noise-Reduction MSE (clean signal vs. hardware prediction): 0.0082
@@ -30,7 +30,7 @@ MSE (software-calculated prediction vs. hardware prediction => should be near 0)
     Inference rate: 96961 Hz (samples/s)
 
     Memory usage (static):
-        - Flash-Usage: 84 Bytes / 512KB (0.02%)
+        - Flash-Usage: 84.00 Bytes / 512KB (0.02%)
         - RAM-Usage: 0 Bytes / 128KB (0.00%)
 
     Noise-Reduction MSE (clean signal vs. hardware prediction): 0.0632
@@ -46,7 +46,7 @@ MSE (software-calculated prediction vs. hardware prediction => should be near 0)
     Inference rate: 96386 Hz (samples/s)
 
     Memory usage (static):
-        - Flash-Usage: 104 Bytes / 512KB (0.02%)
+        - Flash-Usage: 104.00 Bytes / 512KB (0.02%)
         - RAM-Usage: 0 Bytes / 128KB (0.00%)
 
     Noise-Reduction MSE (clean signal vs. hardware prediction): 0.0360
@@ -56,14 +56,14 @@ MSE (software-calculated prediction vs. hardware prediction => should be near 0)
     SNR Improvement: +3.75 dB
 
 
->>> ALGORITHM: IIR (low-pass) filter                                         
+>>> ALGORITHM: EMA (low-pass) filter                                         
 
     Average inference time: 1.19 μs (19 CPU-cycles)
     Inference rate: 842105 Hz (samples/s)
 
     Memory usage (static):
-        - Flash-Usage: 28 Bytes / 512KB (0.01%)
-        - RAM-Usage: 4 Bytes / 128KB (0.00%)
+        - Flash-Usage: 0.00 Bytes / 512KB (0.00%)
+        - RAM-Usage: 0 Bytes / 128KB (0.00%)
 
     Noise-Reduction MSE (clean signal vs. hardware prediction): 0.0620
     MSE Improvement: 27.43% (-0.0234)
@@ -84,7 +84,7 @@ MSE (software-calculated prediction vs. hardware prediction => should be near 0)
     Inference rate: 8994 Hz (samples/s)
 
     Memory usage (static):
-        - Flash-Usage: 596 Bytes / 512KB (0.11%)
+        - Flash-Usage: 596.00 Bytes / 512KB (0.11%)
         - RAM-Usage: 0 Bytes / 128KB (0.00%)
 
     Noise-Reduction MSE (clean signal vs. hardware prediction): 0.0010
@@ -100,7 +100,7 @@ MSE (software-calculated prediction vs. hardware prediction => should be near 0)
     Inference rate: 96961 Hz (samples/s)
 
     Memory usage (static):
-        - Flash-Usage: 84 Bytes / 512KB (0.02%)
+        - Flash-Usage: 84.00 Bytes / 512KB (0.02%)
         - RAM-Usage: 0 Bytes / 128KB (0.00%)
 
     Noise-Reduction MSE (clean signal vs. hardware prediction): 0.1444
@@ -116,7 +116,7 @@ MSE (software-calculated prediction vs. hardware prediction => should be near 0)
     Inference rate: 96386 Hz (samples/s)
 
     Memory usage (static):
-        - Flash-Usage: 104 Bytes / 512KB (0.02%)
+        - Flash-Usage: 104.00 Bytes / 512KB (0.02%)
         - RAM-Usage: 0 Bytes / 128KB (0.00%)
 
     Noise-Reduction MSE (clean signal vs. hardware prediction): 0.0751
@@ -126,14 +126,14 @@ MSE (software-calculated prediction vs. hardware prediction => should be near 0)
     SNR Improvement: +2.19 dB
 
 
->>> ALGORITHM: IIR (low-pass) filter                                         
+>>> ALGORITHM: EMA (low-pass) filter                                         
 
     Average inference time: 1.19 μs (19 CPU-cycles)
     Inference rate: 842105 Hz (samples/s)
 
     Memory usage (static):
-        - Flash-Usage: 28 Bytes / 512KB (0.01%)
-        - RAM-Usage: 4 Bytes / 128KB (0.00%)
+        - Flash-Usage: 0.00 Bytes / 512KB (0.00%)
+        - RAM-Usage: 0 Bytes / 128KB (0.00%)
 
     Noise-Reduction MSE (clean signal vs. hardware prediction): 0.1445
     MSE Improvement: -16.20% (0.0201)
@@ -154,7 +154,7 @@ MSE (software-calculated prediction vs. hardware prediction => should be near 0)
     Inference rate: 8994 Hz (samples/s)
 
     Memory usage (static):
-        - Flash-Usage: 596 Bytes / 512KB (0.11%)
+        - Flash-Usage: 596.00 Bytes / 512KB (0.11%)
         - RAM-Usage: 0 Bytes / 128KB (0.00%)
 
     Noise-Reduction MSE (clean signal vs. hardware prediction): 0.0020
@@ -170,7 +170,7 @@ MSE (software-calculated prediction vs. hardware prediction => should be near 0)
     Inference rate: 96961 Hz (samples/s)
 
     Memory usage (static):
-        - Flash-Usage: 84 Bytes / 512KB (0.02%)
+        - Flash-Usage: 84.00 Bytes / 512KB (0.02%)
         - RAM-Usage: 0 Bytes / 128KB (0.00%)
 
     Noise-Reduction MSE (clean signal vs. hardware prediction): 0.0218
@@ -186,7 +186,7 @@ MSE (software-calculated prediction vs. hardware prediction => should be near 0)
     Inference rate: 96386 Hz (samples/s)
 
     Memory usage (static):
-        - Flash-Usage: 104 Bytes / 512KB (0.02%)
+        - Flash-Usage: 104.00 Bytes / 512KB (0.02%)
         - RAM-Usage: 0 Bytes / 128KB (0.00%)
 
     Noise-Reduction MSE (clean signal vs. hardware prediction): 0.0494
@@ -196,14 +196,14 @@ MSE (software-calculated prediction vs. hardware prediction => should be near 0)
     SNR Improvement: -4.80 dB
 
 
->>> ALGORITHM: IIR (low-pass) filter                                         
+>>> ALGORITHM: EMA (low-pass) filter                                         
 
     Average inference time: 1.19 μs (19 CPU-cycles)
     Inference rate: 842105 Hz (samples/s)
 
     Memory usage (static):
-        - Flash-Usage: 28 Bytes / 512KB (0.01%)
-        - RAM-Usage: 4 Bytes / 128KB (0.00%)
+        - Flash-Usage: 0.00 Bytes / 512KB (0.00%)
+        - RAM-Usage: 0 Bytes / 128KB (0.00%)
 
     Noise-Reduction MSE (clean signal vs. hardware prediction): 0.0210
     MSE Improvement: -28.74% (0.0047)
@@ -224,7 +224,7 @@ MSE (software-calculated prediction vs. hardware prediction => should be near 0)
     Inference rate: 8994 Hz (samples/s)
 
     Memory usage (static):
-        - Flash-Usage: 596 Bytes / 512KB (0.11%)
+        - Flash-Usage: 596.00 Bytes / 512KB (0.11%)
         - RAM-Usage: 0 Bytes / 128KB (0.00%)
 
     Noise-Reduction MSE (clean signal vs. hardware prediction): 0.0421
@@ -240,7 +240,7 @@ MSE (software-calculated prediction vs. hardware prediction => should be near 0)
     Inference rate: 96961 Hz (samples/s)
 
     Memory usage (static):
-        - Flash-Usage: 84 Bytes / 512KB (0.02%)
+        - Flash-Usage: 84.00 Bytes / 512KB (0.02%)
         - RAM-Usage: 0 Bytes / 128KB (0.00%)
 
     Noise-Reduction MSE (clean signal vs. hardware prediction): 0.2173
@@ -256,7 +256,7 @@ MSE (software-calculated prediction vs. hardware prediction => should be near 0)
     Inference rate: 96386 Hz (samples/s)
 
     Memory usage (static):
-        - Flash-Usage: 104 Bytes / 512KB (0.02%)
+        - Flash-Usage: 104.00 Bytes / 512KB (0.02%)
         - RAM-Usage: 0 Bytes / 128KB (0.00%)
 
     Noise-Reduction MSE (clean signal vs. hardware prediction): 0.1215
@@ -266,14 +266,14 @@ MSE (software-calculated prediction vs. hardware prediction => should be near 0)
     SNR Improvement: +2.96 dB
 
 
->>> ALGORITHM: IIR (low-pass) filter                                         
+>>> ALGORITHM: EMA (low-pass) filter                                         
 
     Average inference time: 1.19 μs (19 CPU-cycles)
     Inference rate: 842105 Hz (samples/s)
 
     Memory usage (static):
-        - Flash-Usage: 28 Bytes / 512KB (0.01%)
-        - RAM-Usage: 4 Bytes / 128KB (0.00%)
+        - Flash-Usage: 0.00 Bytes / 512KB (0.00%)
+        - RAM-Usage: 0 Bytes / 128KB (0.00%)
 
     Noise-Reduction MSE (clean signal vs. hardware prediction): 0.2158
     MSE Improvement: 10.22% (-0.0246)
@@ -294,7 +294,7 @@ MSE (software-calculated prediction vs. hardware prediction => should be near 0)
     Inference rate: 8994 Hz (samples/s)
 
     Memory usage (static):
-        - Flash-Usage: 596 Bytes / 512KB (0.11%)
+        - Flash-Usage: 596.00 Bytes / 512KB (0.11%)
         - RAM-Usage: 0 Bytes / 128KB (0.00%)
 
     Noise-Reduction MSE (clean signal vs. hardware prediction): 0.0096
@@ -310,7 +310,7 @@ MSE (software-calculated prediction vs. hardware prediction => should be near 0)
     Inference rate: 96961 Hz (samples/s)
 
     Memory usage (static):
-        - Flash-Usage: 84 Bytes / 512KB (0.02%)
+        - Flash-Usage: 84.00 Bytes / 512KB (0.02%)
         - RAM-Usage: 0 Bytes / 128KB (0.00%)
 
     Noise-Reduction MSE (clean signal vs. hardware prediction): 0.0523
@@ -326,7 +326,7 @@ MSE (software-calculated prediction vs. hardware prediction => should be near 0)
     Inference rate: 96386 Hz (samples/s)
 
     Memory usage (static):
-        - Flash-Usage: 104 Bytes / 512KB (0.02%)
+        - Flash-Usage: 104.00 Bytes / 512KB (0.02%)
         - RAM-Usage: 0 Bytes / 128KB (0.00%)
 
     Noise-Reduction MSE (clean signal vs. hardware prediction): 0.0338
@@ -336,14 +336,14 @@ MSE (software-calculated prediction vs. hardware prediction => should be near 0)
     SNR Improvement: +4.55 dB
 
 
->>> ALGORITHM: IIR (low-pass) filter                                         
+>>> ALGORITHM: EMA (low-pass) filter                                         
 
     Average inference time: 1.19 μs (19 CPU-cycles)
     Inference rate: 842105 Hz (samples/s)
 
     Memory usage (static):
-        - Flash-Usage: 28 Bytes / 512KB (0.01%)
-        - RAM-Usage: 4 Bytes / 128KB (0.00%)
+        - Flash-Usage: 0.00 Bytes / 512KB (0.00%)
+        - RAM-Usage: 0 Bytes / 128KB (0.00%)
 
     Noise-Reduction MSE (clean signal vs. hardware prediction): 0.0524
     MSE Improvement: 45.70% (-0.0441)
@@ -364,7 +364,7 @@ MSE (software-calculated prediction vs. hardware prediction => should be near 0)
     Inference rate: 8994 Hz (samples/s)
 
     Memory usage (static):
-        - Flash-Usage: 596 Bytes / 512KB (0.11%)
+        - Flash-Usage: 596.00 Bytes / 512KB (0.11%)
         - RAM-Usage: 0 Bytes / 128KB (0.00%)
 
     Noise-Reduction MSE (clean signal vs. hardware prediction): 0.0013
@@ -380,7 +380,7 @@ MSE (software-calculated prediction vs. hardware prediction => should be near 0)
     Inference rate: 96961 Hz (samples/s)
 
     Memory usage (static):
-        - Flash-Usage: 84 Bytes / 512KB (0.02%)
+        - Flash-Usage: 84.00 Bytes / 512KB (0.02%)
         - RAM-Usage: 0 Bytes / 128KB (0.00%)
 
     Noise-Reduction MSE (clean signal vs. hardware prediction): 0.1218
@@ -396,7 +396,7 @@ MSE (software-calculated prediction vs. hardware prediction => should be near 0)
     Inference rate: 96386 Hz (samples/s)
 
     Memory usage (static):
-        - Flash-Usage: 104 Bytes / 512KB (0.02%)
+        - Flash-Usage: 104.00 Bytes / 512KB (0.02%)
         - RAM-Usage: 0 Bytes / 128KB (0.00%)
 
     Noise-Reduction MSE (clean signal vs. hardware prediction): 0.0503
@@ -406,14 +406,14 @@ MSE (software-calculated prediction vs. hardware prediction => should be near 0)
     SNR Improvement: +3.35 dB
 
 
->>> ALGORITHM: IIR (low-pass) filter                                         
+>>> ALGORITHM: EMA (low-pass) filter                                         
 
     Average inference time: 1.19 μs (19 CPU-cycles)
     Inference rate: 842105 Hz (samples/s)
 
     Memory usage (static):
-        - Flash-Usage: 28 Bytes / 512KB (0.01%)
-        - RAM-Usage: 4 Bytes / 128KB (0.00%)
+        - Flash-Usage: 0.00 Bytes / 512KB (0.00%)
+        - RAM-Usage: 0 Bytes / 128KB (0.00%)
 
     Noise-Reduction MSE (clean signal vs. hardware prediction): 0.1210
     MSE Improvement: -11.31% (0.0123)
@@ -434,7 +434,7 @@ MSE (software-calculated prediction vs. hardware prediction => should be near 0)
     Inference rate: 8994 Hz (samples/s)
 
     Memory usage (static):
-        - Flash-Usage: 596 Bytes / 512KB (0.11%)
+        - Flash-Usage: 596.00 Bytes / 512KB (0.11%)
         - RAM-Usage: 0 Bytes / 128KB (0.00%)
 
     Noise-Reduction MSE (clean signal vs. hardware prediction): 0.0195
@@ -450,7 +450,7 @@ MSE (software-calculated prediction vs. hardware prediction => should be near 0)
     Inference rate: 96961 Hz (samples/s)
 
     Memory usage (static):
-        - Flash-Usage: 84 Bytes / 512KB (0.02%)
+        - Flash-Usage: 84.00 Bytes / 512KB (0.02%)
         - RAM-Usage: 0 Bytes / 128KB (0.00%)
 
     Noise-Reduction MSE (clean signal vs. hardware prediction): 0.1650
@@ -466,7 +466,7 @@ MSE (software-calculated prediction vs. hardware prediction => should be near 0)
     Inference rate: 96386 Hz (samples/s)
 
     Memory usage (static):
-        - Flash-Usage: 104 Bytes / 512KB (0.02%)
+        - Flash-Usage: 104.00 Bytes / 512KB (0.02%)
         - RAM-Usage: 0 Bytes / 128KB (0.00%)
 
     Noise-Reduction MSE (clean signal vs. hardware prediction): 0.0829
@@ -476,14 +476,14 @@ MSE (software-calculated prediction vs. hardware prediction => should be near 0)
     SNR Improvement: +4.01 dB
 
 
->>> ALGORITHM: IIR (low-pass) filter                                         
+>>> ALGORITHM: EMA (low-pass) filter                                         
 
     Average inference time: 1.19 μs (19 CPU-cycles)
     Inference rate: 842105 Hz (samples/s)
 
     Memory usage (static):
-        - Flash-Usage: 28 Bytes / 512KB (0.01%)
-        - RAM-Usage: 4 Bytes / 128KB (0.00%)
+        - Flash-Usage: 0.00 Bytes / 512KB (0.00%)
+        - RAM-Usage: 0 Bytes / 128KB (0.00%)
 
     Noise-Reduction MSE (clean signal vs. hardware prediction): 0.1648
     MSE Improvement: 21.11% (-0.0441)

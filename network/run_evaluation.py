@@ -62,7 +62,7 @@ def get_memory_usage():
         "nn": {"flash": 0, "ram": 0},
         "kalman": {"flash": 0, "ram": 0},
         "wiener": {"flash": 0, "ram": 0},
-        "iir": {"flash": 0, "ram": 0},
+        "ema": {"flash": 0, "ram": 0},
     }
 
     # parsing nm-output lines
@@ -84,9 +84,9 @@ def get_memory_usage():
         elif "wiener" in sym_name:
             if sym_type in ["T", "W", "V", "R"]: usage["wiener"]["flash"] += usage_bytes
             else: usage["wiener"]["ram"] += usage_bytes
-        elif "iir" in sym_name:
-            if sym_type in ["T", "W", "V", "R"]: usage["iir"]["flash"] += usage_bytes
-            else: usage["iir"]["ram"] += usage_bytes
+        elif "ema" in sym_name:
+            if sym_type in ["T", "W", "V", "R"]: usage["ema"]["flash"] += usage_bytes
+            else: usage["ema"]["ram"] += usage_bytes
         elif sym_name in ["predict_nn", "data", "w1", "b1", "w2", "b2"]:
             if sym_type in ["T", "W", "V", "R"]: usage["nn"]["flash"] += usage_bytes
             else: usage["nn"]["ram"] += usage_bytes
@@ -146,8 +146,8 @@ def plot_only_nn(path, samples, scenario, clean, noisy, nn):
 def plot_efficiency(path, scenario, data):
     plt.figure(figsize=(12, 5))
 
-    colors = {"nn": "lightgreen", "kalman": "blue", "wiener": "red", "iir": "purple"}
-    labels = {"nn": "Neural Network", "kalman": "Kalman", "wiener": "Wiener", "iir": "IIR"}
+    colors = {"nn": "lightgreen", "kalman": "blue", "wiener": "red", "ema": "purple"}
+    labels = {"nn": "Neural Network", "kalman": "Kalman", "wiener": "Wiener", "ema": "EMA"}
 
     for algorithm, (time_us, imp_pct) in data.items():
         plt.scatter(time_us, imp_pct, color=colors[algorithm], marker=".", s=120, label=labels[algorithm], zorder=3)
@@ -172,9 +172,9 @@ def plot_improvement(path, data, type):
     if not scenarios:
         return
     
-    algorithms = ["nn", "kalman", "wiener", "iir"]
-    colors = {"nn": "lightgreen", "kalman": "blue", "wiener": "red", "iir": "purple"}
-    labels = {"nn": "Neural Network", "kalman": "Kalman", "wiener": "Wiener", "iir": "IIR"}
+    algorithms = ["nn", "kalman", "wiener", "ema"]
+    colors = {"nn": "lightgreen", "kalman": "blue", "wiener": "red", "ema": "purple"}
+    labels = {"nn": "Neural Network", "kalman": "Kalman", "wiener": "Wiener", "ema": "EMA"}
 
     x = np.arange(len(scenarios))
     width = 0.2
@@ -245,7 +245,7 @@ def run_hardware_evaluation():
                     "nn": {"pred": [], "cycles": []},
                     "kalman": {"pred": [], "cycles": []},
                     "wiener": {"pred": [], "cycles": []},
-                    "iir": {"pred": [], "cycles": []},
+                    "ema": {"pred": [], "cycles": []},
                 }
 
                 expected_targets = []
@@ -276,8 +276,8 @@ def run_hardware_evaluation():
                             hardw_results["wiener"]["cycles"].append(int(parts[4]))
                             hardw_results["wiener"]["pred"].append(int(parts[5]))
 
-                            hardw_results["iir"]["cycles"].append(int(parts[6]))
-                            hardw_results["iir"]["pred"].append(int(parts[7]))
+                            hardw_results["ema"]["cycles"].append(int(parts[6]))
+                            hardw_results["ema"]["pred"].append(int(parts[7]))
                             
                             expected_targets.append(all_targets[i])
 
@@ -307,7 +307,7 @@ def run_hardware_evaluation():
 
                     memory_usage = get_memory_usage()
 
-                    for algorithm in ["nn", "kalman", "wiener", "iir"]:
+                    for algorithm in ["nn", "kalman", "wiener", "ema"]:
                         avg_cycles = np.mean(hardw_results[algorithm]["cycles"])
                         avg_inference_time = (avg_cycles / 16000000) * 1000000 # avg. inference time in μs 
 
@@ -345,8 +345,8 @@ def run_hardware_evaluation():
                                 algo_name = "Kalman algorithm"
                             case "wiener":
                                 algo_name = "Wiener algorithm (FIR-filter)"
-                            case "iir":
-                                algo_name = "IIR (low-pass) filter"
+                            case "ema":
+                                algo_name = "EMA (low-pass) filter"
 
                         report += dedent(f"""
                         >>> ALGORITHM: {algo_name}                                         
@@ -355,7 +355,7 @@ def run_hardware_evaluation():
                             Inference rate: {1/ (avg_inference_time / 1000000):.0f} Hz (samples/s)
 
                             Memory usage (static):
-                                - Flash-Usage: {flash_usage} Bytes / 512KB ({(flash_usage/(512*1024))*100:.2f}%)
+                                - Flash-Usage: {flash_usage:.2f} Bytes / 512KB ({(flash_usage/(512*1024))*100:.2f}%)
                                 - RAM-Usage: {ram_usage} Bytes / 128KB ({(ram_usage/(128*1024))*100:.2f}%)
 
                             Noise-Reduction MSE (clean signal vs. hardware prediction): {mse_reduct:.4f}
