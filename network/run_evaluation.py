@@ -113,8 +113,8 @@ def plot_signals(path, samples, scenario, filter_name, clean, noisy, nn, filter)
 
     plt.plot(samples, clean[:80], label="Clean signal (target)", color="black", alpha=1, linewidth=2)
     plt.plot(samples, noisy[:80], label="Noisy signal (input)", color="red", alpha=0.5, linewidth=2)
-    plt.plot(samples, nn[:80], label="Filtered signal (Neural Network)", color="lightgreen", alpha=1, linewidth=1.5)
-    plt.plot(samples, filter[:80], label=f"Filtered signal ({filter_name})", color="lightblue", alpha=1, linewidth=1.5)
+    plt.plot(samples, nn[:80], label="Filtered signal (Neural Network)", color="dodgerblue", alpha=1, linewidth=1.5)
+    plt.plot(samples, filter[:80], label=f"Filtered signal ({filter_name})", color="lawngreen", alpha=1, linewidth=1.5)
 
     plt.grid(True, linestyle="--", alpha=0.5, linewidth=1)
     plt.title(f"Compared signals - scenario: {scenario.upper()}")
@@ -131,7 +131,7 @@ def plot_only_nn(path, samples, scenario, clean, noisy, nn):
 
     plt.plot(samples, clean[:80], label="Clean signal (target)", color="black", alpha=1, linewidth=2)
     plt.plot(samples, noisy[:80], label="Noisy signal (input)", color="red", alpha=0.5, linewidth=2)
-    plt.plot(samples, nn[:80], label="Filtered signal (Neural Network)", color="lightgreen", alpha=1, linewidth=1.5)
+    plt.plot(samples, nn[:80], label="Filtered signal (Neural Network)", color="dodgerblue", alpha=1, linewidth=1.5)
 
     plt.grid(True, linestyle="--", alpha=0.5, linewidth=1)
     plt.title(f"Compared signals - scenario: {scenario.upper()}")
@@ -146,7 +146,7 @@ def plot_only_nn(path, samples, scenario, clean, noisy, nn):
 def plot_efficiency(path, scenario, data):
     plt.figure(figsize=(12, 5))
 
-    colors = {"nn": "lightgreen", "kalman": "blue", "wiener": "red", "ema": "purple"}
+    colors = {"nn": "dodgerblue", "kalman": "lawngreen", "wiener": "red", "ema": "purple"}
     labels = {"nn": "Neural Network", "kalman": "Kalman", "wiener": "Wiener", "ema": "EMA"}
 
     for algorithm, (time_us, imp_pct) in data.items():
@@ -173,7 +173,7 @@ def plot_improvement(path, data, type):
         return
     
     algorithms = ["nn", "kalman", "wiener", "ema"]
-    colors = {"nn": "lightgreen", "kalman": "blue", "wiener": "red", "ema": "purple"}
+    colors = {"nn": "dodgerblue", "kalman": "lawngreen", "wiener": "red", "ema": "purple"}
     labels = {"nn": "Neural Network", "kalman": "Kalman", "wiener": "Wiener", "ema": "EMA"}
 
     x = np.arange(len(scenarios))
