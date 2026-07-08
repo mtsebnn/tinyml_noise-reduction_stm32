@@ -14,12 +14,12 @@ const int32_t wiener_weights[16] = {
 };
 
 // IIR filter
-static int32_t iir_state = 0; // internal state of the filter
+static int32_t ema_state = 0; // internal state of the filter
 
 void reset_filters(void) {
     P = 65536;
     x_pred = 0;
-    iir_state = 0;
+    ema_state = 0;
 }
 
 // Kalman algorithm
@@ -53,10 +53,10 @@ __attribute__((noinline)) int32_t predict_wiener(const int8_t *input_window) {
 }
 
 // IIR (low-pass) filter (EMA (Exponential Moving Average))
-__attribute__((noinline)) int32_t predict_iir(int8_t current_sample) {
+__attribute__((noinline)) int32_t predict_ema(int8_t current_sample) {
     int32_t sample_fixed = (int32_t)current_sample << 8;
     // IIR/EMA filter formula -> converted to fixed-point -> i.e. 0.625 * y = y * 5 / 8 = (5 * y) >> 3
     // using 62.5% signal history and 37.5% new measurement
-    iir_state = ((5 * sample_fixed) + (3 * iir_state)) >> 3; 
-    return iir_state >> 8;
+    ema_state = ((5 * sample_fixed) + (3 * ema_state)) >> 3; 
+    return ema_state >> 8;
 }

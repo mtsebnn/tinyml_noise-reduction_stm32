@@ -5,7 +5,7 @@ const nn_data_t data = {
     .name = "data", .w1 = w1,
     .b1 = b1, .w2 = w2,
     .b2 = B2, .requant_multiplier = REQUANT_MULT,
-    .shift_value = SHIFT_VALUE
+    .residual_multiplier = RESIDUAL_MULT, .shift_value = SHIFT_VALUE
 };
 
 // neural network fixed-point arithmetic
@@ -40,7 +40,7 @@ int32_t predict_nn(const int8_t *input_window, const nn_data_t *config) {
     }
 
     int8_t center_sample = input_window[WINDOW_SIZE / 2];
-    int64_t scaled_noise = (int64_t)center_sample * RESIDUAL_MULT;
+    int64_t scaled_noise = (int64_t)center_sample * config->residual_multiplier;
     int32_t shifted_noise = (int32_t)((scaled_noise + (1 << (config->shift_value -1))) >> config->shift_value);
     int32_t pred_clean = shifted_noise - layer2_out;
 

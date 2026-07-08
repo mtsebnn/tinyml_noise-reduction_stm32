@@ -20,7 +20,7 @@ typedef struct {
     const int16_t *w2; // w2 is a pointer to a single int8_t element (ptr[0] = *(ptr + 0) = ptr*)
     const int32_t b2;
     const int32_t requant_multiplier;
-    const int32_t residual_multiplier;
+    const int64_t residual_multiplier;
     const uint8_t shift_value;
 } nn_data_t;
 

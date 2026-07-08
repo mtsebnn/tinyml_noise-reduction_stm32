@@ -78,7 +78,7 @@ def get_memory_usage():
         sym_name = parts[3].lower()
 
         # T/W/V = code, R = read only (flash), D/B = ram (data/bss)
-        if "kalman" in sym_name:
+        if "kalman" in sym_name or sym_name in ["x_pred", "p"]:
             if sym_type in ["T", "W", "V", "R"]: usage["kalman"]["flash"] += usage_bytes
             else: usage["kalman"]["ram"] += usage_bytes
         elif "wiener" in sym_name:
@@ -87,7 +87,7 @@ def get_memory_usage():
         elif "ema" in sym_name:
             if sym_type in ["T", "W", "V", "R"]: usage["ema"]["flash"] += usage_bytes
             else: usage["ema"]["ram"] += usage_bytes
-        elif sym_name in ["predict_nn", "data", "w1", "b1", "w2", "b2"]:
+        elif "nn" in sym_name or sym_name in ["data", "w1", "b1", "w2", "b2", "requant_multiplier", "residual_multiplier", "shift_value"]:
             if sym_type in ["T", "W", "V", "R"]: usage["nn"]["flash"] += usage_bytes
             else: usage["nn"]["ram"] += usage_bytes
 
@@ -143,15 +143,19 @@ def plot_only_nn(path, samples, scenario, clean, noisy, nn):
     plt.savefig(path / f"plot_signals_{scenario}_only_nn.png", dpi=150)
     plt.close()
 
-def plot_efficiency(path, scenario, data):
+def plot_efficiency(path, scenario, data, memory):
     plt.figure(figsize=(12, 5))
 
     colors = {"nn": "dodgerblue", "kalman": "lawngreen", "wiener": "red", "ema": "purple"}
     labels = {"nn": "Neural Network", "kalman": "Kalman", "wiener": "Wiener", "ema": "EMA"}
 
     for algorithm, (time_us, imp_pct) in data.items():
-        plt.scatter(time_us, imp_pct, color=colors[algorithm], marker=".", s=120, label=labels[algorithm], zorder=3)
-        plt.text(time_us * 1.1, imp_pct, f" {labels[algorithm]}\n ({time_us:.1f} μs, {imp_pct:.1f}%)", fontsize=9, verticalalignment="center", zorder=4)
+        flash = memory.get(algorithm, {}).get("flash", 0)
+        size = 100 + (flash * 2.5)
+
+        plt.scatter(time_us, imp_pct, color=colors[algorithm], marker=".", s=size, label=labels[algorithm], zorder=3)
+        text_off = 1.25 if algorithm == "nn" else 1.15
+        plt.text(time_us * text_off, imp_pct, f" {labels[algorithm]}\n ({flash} Bytes, {time_us:.1f} μs, {imp_pct:.1f}%)", fontsize=9, verticalalignment="center", zorder=4)
 
     plt.xscale("log")
     plt.grid(True, linestyle="--", alpha=0.5, linewidth=1, which="both")
@@ -159,11 +163,11 @@ def plot_efficiency(path, scenario, data):
     plt.xlabel("Average inference time in μs (logarithmic scale)")
     plt.ylabel("MSE Improvement in %")
 
-    all_pct = [val[1] for val in data.values()]
+    all_pct = [v[1] for v in data.values()]
     plt.ylim(min(all_pct) - 20 if min(all_pct) < 0 else -10, max(all_pct) + 20)
     plt.axhline(0, color="black", linewidth=0.8, linestyle="-")
-    plt.tight_layout()
 
+    plt.tight_layout()
     plt.savefig(path / f"plot_efficiency_vs_quality_{scenario}.png", dpi=150)
     plt.close()
 
@@ -183,14 +187,14 @@ def plot_improvement(path, data, type):
 
     for i, algorithm in enumerate(algorithms):
         offset = x + (i - 1.5) * width
-        percent = [data[s][algorithm] for s in scenarios]
-        p.bar(offset, percent, width, color=colors[algorithm], label=labels[algorithm])
+        y = [data[s][algorithm] for s in scenarios]
+        p.bar(offset, y, width, color=colors[algorithm], label=labels[algorithm])
 
     if type == "mse":
         p.set_ylabel("MSE Improvement in %")
         p.set_title("Comparison of filter performance (MSE Improvement) for every scenario")
     else:
-        p.set_ylabel("SNR Improvement in %")
+        p.set_ylabel("SNR Improvement in dB")
         p.set_title("Comparison of filter performance (SNR Improvement) for every scenario")
 
     p.set_xticks(x)
@@ -204,17 +208,55 @@ def plot_improvement(path, data, type):
         plt.savefig(path / f"overall_mse_improvement.png", dpi=150)
     else:
         plt.savefig(path / f"overall_snr_improvement.png", dpi=150)
-    
     plt.close()
 
+def plot_memory(path, data):
+    
+    algorithms = ["nn", "kalman", "wiener", "ema"]
+    labels = {"nn": "Neural Network", "kalman": "Kalman", "wiener": "Wiener", "ema": "EMA"}
+
+    flash = [data.get(algorithm, {}).get("flash", 0) for algorithm in algorithms]
+    ram = [data.get(algorithm, {}).get("ram", 0) for algorithm in algorithms]
+
+    x = np.arange(len(algorithms))
+    width = 0.2
+
+    fig, p = plt.subplots(figsize=(12, 5))
+
+    p.bar(x - width / 2, flash, width, label="Flash", color="red")
+    p.bar(x + width / 2, ram, width, label="RAM", color="dodgerblue")
+
+    p.set_ylabel("Memory usage (bytes)")
+    p.set_title("Static Memory Usage")
+    p.set_xticks(x)
+    p.set_xticklabels([labels[a] for a in algorithms])
+    p.legend()
+    p.grid(True, axis="y", linestyle="--", alpha=0.5, linewidth=1)
+    p.axhline(0, color="black", linewidth=1)
+
+    plt.tight_layout()
+    plt.savefig(path / f"memory_usage.png", dpi=150)
+    plt.close()
 
 def run_hardware_evaluation():
     report = dedent (f"""\
     -----------------------------------------------------------
         Noise-Reduction Network Hardware Evaluation Results
-    -----------------------------------------------------------                
+    -----------------------------------------------------------
+       
     """)
+    report_temp = ""
 
+    algorithms = ["nn", "kalman", "wiener", "ema"]
+
+    # get memory usage
+    memory_usage = get_memory_usage()
+    memory_data = {algorithm: {"flash": 0, "ram": 0} for algorithm in algorithms}
+    for algorithm in algorithms:
+        memory_data[algorithm]["flash"] = memory_usage.get(algorithm, {}).get("flash", 0)
+        memory_data[algorithm]["ram"] = memory_usage.get(algorithm, {}).get("ram", 0)
+
+    global_cycles = {algorithm: [] for algorithm in algorithms}
     error_data = {}
     snr_data = {}
 
@@ -268,15 +310,19 @@ def run_hardware_evaluation():
                         if len(parts) == 8:
                             # extract predictions and cycle counts
                             hardw_results["nn"]["cycles"].append(int(parts[0]))
+                            global_cycles["nn"].append(int(parts[0]))
                             hardw_results["nn"]["pred"].append(int(parts[1]))
                             
                             hardw_results["kalman"]["cycles"].append(int(parts[2]))
+                            global_cycles["kalman"].append(int(parts[2]))
                             hardw_results["kalman"]["pred"].append(int(parts[3]))
 
                             hardw_results["wiener"]["cycles"].append(int(parts[4]))
+                            global_cycles["wiener"].append(int(parts[4]))
                             hardw_results["wiener"]["pred"].append(int(parts[5]))
 
                             hardw_results["ema"]["cycles"].append(int(parts[6]))
+                            global_cycles["ema"].append(int(parts[6]))
                             hardw_results["ema"]["pred"].append(int(parts[7]))
                             
                             expected_targets.append(all_targets[i])
@@ -290,12 +336,12 @@ def run_hardware_evaluation():
 
                     
                 if len(hardw_results["nn"]["pred"]) == num_tests:
-                    report += dedent(f"""\n\n--- SCENARIO: {scenario.upper()} ({num_tests} TEST SAMPLES) ---""")
+                    report_temp += dedent(f"""\n\n--- SCENARIO: {scenario.upper()} ({num_tests} TEST SAMPLES) ---""")
 
                     # overall noise
                     noisy_signal_float = all_inputs[:num_tests, 8] * S_input
                     mse_noise, snr_noise = evaluate(clean_targets, noisy_signal_float)
-                    report += dedent(f"""
+                    report_temp += dedent(f"""
                     Initial Noise MSE (clean signal vs. noisy signal): {mse_noise:.4f}
                     Initial Signal-to-Noise Ratio SNR (clean signal vs. noisy signal): {snr_noise:.2f} dB
                     """)
@@ -305,18 +351,16 @@ def run_hardware_evaluation():
                     error_data[scenario] = {}
                     snr_data[scenario] = {}
 
-                    memory_usage = get_memory_usage()
-
-                    for algorithm in ["nn", "kalman", "wiener", "ema"]:
-                        avg_cycles = np.mean(hardw_results[algorithm]["cycles"])
-                        avg_inference_time = (avg_cycles / 16000000) * 1000000 # avg. inference time in μs 
+                    for algorithm in algorithms:
+                        avg_cycles_algorithm = np.mean(hardw_results[algorithm]["cycles"])
+                        avg_inference_time_algorithm = (avg_cycles_algorithm / 16000000) * 1000000 # avg. inference time in μs 
 
                         if algorithm == "nn":
                             hardw_predictions_float = nn_predictions = np.array(hardw_results[algorithm]["pred"]) * S_output # dequantization to int -> float
                             # validation hardware prediction vs. expected prediction calculated by python (int vs. int) (should be the same -> MSE = 0)
                             mse_hardware_validation, snr_hardware_validation = evaluate(expected_targets, hardw_results[algorithm]["pred"])
 
-                            report += dedent(f"MSE (software-calculated prediction vs. hardware prediction => should be near 0): {mse_hardware_validation:.4f}\n")
+                            report_temp += dedent(f"MSE (software-calculated prediction vs. hardware prediction => should be near 0): {mse_hardware_validation:.4f}\n")
 
                         else:
                             hardw_predictions_float = np.array(hardw_results[algorithm]["pred"]) * S_input
@@ -328,15 +372,10 @@ def run_hardware_evaluation():
 
                         # plot data
                         mse_imp_percent = (mse_imp / mse_noise) * 100
-                        snr_imp_percent = (snr_imp / snr_noise) * 100
-                        efficiency_data[algorithm] = (avg_inference_time, mse_imp_percent)
+                        efficiency_data[algorithm] = (avg_inference_time_algorithm, mse_imp_percent)
                         error_data[scenario][algorithm] = mse_imp_percent
-                        snr_data[scenario][algorithm] = snr_imp_percent
+                        snr_data[scenario][algorithm] = snr_imp
 
-                        # get memory usage for each algorithm
-                        flash_usage = memory_usage.get(algorithm, {}).get("flash", 0)
-                        ram_usage = memory_usage.get(algorithm, {}).get("ram", 0)
-                    
                         algo_name = None
                         match algorithm:
                             case "nn":
@@ -348,15 +387,8 @@ def run_hardware_evaluation():
                             case "ema":
                                 algo_name = "EMA (low-pass) filter"
 
-                        report += dedent(f"""
+                        report_temp += dedent(f"""
                         >>> ALGORITHM: {algo_name}                                         
-        
-                            Average inference time: {avg_inference_time:.2f} μs ({avg_cycles:.0f} CPU-cycles)
-                            Inference rate: {1/ (avg_inference_time / 1000000):.0f} Hz (samples/s)
-
-                            Memory usage (static):
-                                - Flash-Usage: {flash_usage:.2f} Bytes / 512KB ({(flash_usage/(512*1024))*100:.2f}%)
-                                - RAM-Usage: {ram_usage} Bytes / 128KB ({(ram_usage/(128*1024))*100:.2f}%)
 
                             Noise-Reduction MSE (clean signal vs. hardware prediction): {mse_reduct:.4f}
                             MSE Improvement: {(mse_imp / mse_noise) * 100:.2f}% ({(-1)*mse_imp:.4f})
@@ -370,22 +402,55 @@ def run_hardware_evaluation():
                             plot_signals(scenario_dir, np.arange(80), scenario, algo_name, clean_targets, noisy_signal_float, nn_predictions, hardw_predictions_float)
 
                     plot_only_nn(scenario_dir, np.arange(80), scenario, clean_targets, noisy_signal_float, nn_predictions)
-                        
-
-                    plot_efficiency(scenario_dir, scenario, efficiency_data)
+                    plot_efficiency(scenario_dir, scenario, efficiency_data, memory_data)
 
                 else:
-                    report += dedent(f"""\
+                    report_temp += dedent(f"""\
                     --- Scenario: {scenario.upper()} evaluation error. ---
                     """)
     except serial.SerialException as e:
         print(f"Error at COM-Port: {e}")
         return
     
+    # write algorithm specific hardware information
+    for i, algorithm in enumerate(algorithms):
+        algo_name = None
+        match algorithm:
+            case "nn":
+                algo_name = "Neural Network"
+            case "kalman":
+                algo_name = "Kalman algorithm"
+            case "wiener":
+                algo_name = "Wiener algorithm (FIR-filter)"
+            case "ema":
+                algo_name = "EMA (low-pass) filter"
+
+        flash = memory_data[algorithm]["flash"]
+        ram = memory_data[algorithm]["ram"]
+
+        if global_cycles[algorithm]:
+            avg_global_cycles = np.mean(global_cycles[algorithm])
+            avg_inference_time = (avg_global_cycles / 16000000) * 1000000 # avg. inference time in μs 
+        else:
+            avg_global_cycles = 0
+            avg_inference_time = 0
+
+        report += dedent(f"""
+            {i+1}. {algo_name}
+                - Flash-Usage: {flash} Bytes / 512KB ({(flash/(512*1024))*100:.4f}%)
+                - RAM-Usage: {ram} Bytes / 128KB ({(ram/(128*1024))*100:.4f}%)
+                - Average inference time: {avg_inference_time:.2f} μs ({avg_global_cycles:.0f} CPU-cycles)
+                - Inference rate: {1/ (avg_inference_time / 1000000):.0f} Hz (samples/s)                
+        """)
+
+    # plots
+    plot_memory(BASE_DIR, memory_data)
     plot_improvement(BASE_DIR, error_data, "mse")
     plot_improvement(BASE_DIR, snr_data, "snr")
     
     # console and file ouput
+    # write report
+    report += report_temp
     print("\n" + report)
     with open(BASE_DIR / "evaluation_report.txt", "w", encoding="utf-8") as f:
         f.write(report)

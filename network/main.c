@@ -110,10 +110,10 @@ int main(void) {
             int32_t predicted_wie = predict_wiener(input_window);
             uint32_t cycles_wie = DWT_CYCCNT - start_cycles_wie;
 
-            // 4. IIR filter
-            uint32_t start_cycles_iir = DWT_CYCCNT;
-            int32_t predicted_iir = predict_iir(current_sample);
-            uint32_t cycles_iir = DWT_CYCCNT - start_cycles_iir;
+            // 4. EMA filter
+            uint32_t start_cycles_ema = DWT_CYCCNT;
+            int32_t predicted_ema = predict_ema(current_sample);
+            uint32_t cycles_ema = DWT_CYCCNT - start_cycles_ema;
 
 
             // print out total inference cycles and predicted signals
@@ -121,7 +121,7 @@ int main(void) {
                 cycles_nn, predicted_nn,
                 cycles_kal, predicted_kal,
                 cycles_wie, predicted_wie,
-                cycles_iir, predicted_iir
+                cycles_ema, predicted_ema
             ); // %lu = unsigned long, %ld = long, %.2f = float
         }
     }
