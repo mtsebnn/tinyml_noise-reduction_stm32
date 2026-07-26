@@ -149,22 +149,22 @@ def plot_efficiency(path, scenario, data, memory):
     colors = {"nn": "dodgerblue", "kalman": "lawngreen", "wiener": "red", "ema": "purple"}
     labels = {"nn": "Neural Network", "kalman": "Kalman", "wiener": "Wiener", "ema": "EMA"}
 
-    for algorithm, (time_us, imp_pct) in data.items():
+    for algorithm, (time_us, imp) in data.items():
         flash = memory.get(algorithm, {}).get("flash", 0)
         size = 100 + (flash * 2.5)
 
-        plt.scatter(time_us, imp_pct, color=colors[algorithm], marker=".", s=size, label=labels[algorithm], zorder=3)
+        plt.scatter(time_us, imp, color=colors[algorithm], marker=".", s=size, label=labels[algorithm], zorder=3)
         text_off = 1.25 if algorithm == "nn" else 1.15
-        plt.text(time_us * text_off, imp_pct, f" {labels[algorithm]}\n ({flash} Bytes, {time_us:.1f} μs, {imp_pct:.1f}%)", fontsize=9, verticalalignment="center", zorder=4)
+        plt.text(time_us * text_off, imp, f" {labels[algorithm]}\n ({flash} Bytes, {time_us:.1f}μs, {imp:+.2f}dB)", fontsize=9, verticalalignment="center", zorder=4)
 
     plt.xscale("log")
     plt.grid(True, linestyle="--", alpha=0.5, linewidth=1, which="both")
     plt.title(f"Efficiency vs. Quality - scenario: {scenario.upper()}")
     plt.xlabel("Average inference time in μs (logarithmic scale)")
-    plt.ylabel("MSE Improvement in %")
+    plt.ylabel("SNR Improvement in dB")
 
-    all_pct = [v[1] for v in data.values()]
-    plt.ylim(min(all_pct) - 20 if min(all_pct) < 0 else -10, max(all_pct) + 20)
+    all = [v[1] for v in data.values()]
+    plt.ylim(min(all) - 5 if min(all) < 0 else -5, max(all) + 5)
     plt.axhline(0, color="black", linewidth=0.8, linestyle="-")
 
     plt.tight_layout()
@@ -372,7 +372,7 @@ def run_hardware_evaluation():
 
                         # plot data
                         mse_imp_percent = (mse_imp / mse_noise) * 100
-                        efficiency_data[algorithm] = (avg_inference_time_algorithm, mse_imp_percent)
+                        efficiency_data[algorithm] = (avg_inference_time_algorithm, snr_imp)
                         error_data[scenario][algorithm] = mse_imp_percent
                         snr_data[scenario][algorithm] = snr_imp
 
